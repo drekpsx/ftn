@@ -165,7 +165,7 @@ export default function RequestDetailPage() {
                 <div key={a.fieldId} className="flex justify-between gap-4 border-b border-gray-50 pb-2 last:border-0">
                   <dt className="text-gray-500">{a.label}</dt>
                   <dd className="text-right font-medium text-gray-800">
-                    {typeof a.value === 'string' && a.value.startsWith('/uploads') ? (
+                    {typeof a.value === 'string' && (a.value.startsWith('data:') || a.value.startsWith('/uploads') || a.value.startsWith('http')) ? (
                       <a href={a.value} target="_blank" rel="noreferrer" className="text-brand-700 underline">
                         Voir le fichier
                       </a>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Copy, ExternalLink, Upload, Check } from 'lucide-react';
+import { Copy, ExternalLink, Upload, Check, ImagePlus, Loader2 } from 'lucide-react';
 import QRCode from 'qrcode';
 import { PageHeader } from '@/components/dashboard/PageHeader';
 import { HelpBanner } from '@/components/dashboard/HelpBanner';
@@ -36,6 +36,8 @@ export default function PublicPageSettings() {
   const [copied, setCopied] = useState<string | null>(null);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [appUrl, setAppUrl] = useState('');
+  const [uploadingKey, setUploadingKey] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   useEffect(() => {
     setAppUrl(window.location.origin);
@@ -59,18 +61,36 @@ export default function PublicPageSettings() {
         body: JSON.stringify(patch),
       });
       const data = await res.json();
-      if (res.ok) setBusiness(data.business);
+      if (!res.ok) {
+        setUploadError(data.error || "L'enregistrement a échoué. Réessayez.");
+        return;
+      }
+      setBusiness(data.business);
+    } catch {
+      setUploadError('Impossible de contacter le serveur. Vérifiez votre connexion et réessayez.');
     } finally {
       setSaving(false);
     }
   }
 
   async function upload(file: File, key: 'logoUrl' | 'avatarUrl' | 'coverUrl') {
-    const formData = new FormData();
-    formData.append('file', file);
-    const res = await fetch('/api/upload', { method: 'POST', body: formData });
-    const data = await res.json();
-    if (res.ok) save({ [key]: data.url } as Partial<Business>);
+    setUploadingKey(key);
+    setUploadError(null);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch('/api/upload', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (!res.ok) {
+        setUploadError(data.error || "Impossible d'importer cette image. Réessayez.");
+        return;
+      }
+      await save({ [key]: data.url } as Partial<Business>);
+    } catch {
+      setUploadError("Impossible d'importer cette image. Vérifiez votre connexion et réessayez.");
+    } finally {
+      setUploadingKey(null);
+    }
   }
 
   function copy(text: string, key: string) {
@@ -137,16 +157,50 @@ export default function PublicPageSettings() {
                   onBlur={(e) => save({ description: e.target.value })}
                 />
               </div>
+              {uploadError && (
+                <div className="rounded-xl bg-red-50 px-3.5 py-2.5 text-sm text-red-700">{uploadError}</div>
+              )}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="label">Photo de profil</label>
-                  <input type="file" accept="image/*" onChange={(e) => e.target.files && upload(e.target.files[0], 'avatarUrl')} />
+                  <label className="group relative flex h-24 w-24 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-dashed border-gray-300 bg-gray-50 hover:border-brand-400">
+                    {uploadingKey === 'avatarUrl' ? (
+                      <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+                    ) : business.avatarUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={business.avatarUrl} alt="Photo de profil" className="h-full w-full object-cover" />
+                    ) : (
+                      <ImagePlus className="h-5 w-5 text-gray-400" />
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="absolute inset-0 cursor-pointer opacity-0"
+                      onChange={(e) => e.target.files?.[0] && upload(e.target.files[0], 'avatarUrl')}
+                    />
+                  </label>
                 </div>
                 <div>
                   <label className="label">Image de couverture</label>
-                  <input type="file" accept="image/*" onChange={(e) => e.target.files && upload(e.target.files[0], 'coverUrl')} />
+                  <label className="group relative flex h-24 w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-dashed border-gray-300 bg-gray-50 hover:border-brand-400">
+                    {uploadingKey === 'coverUrl' ? (
+                      <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+                    ) : business.coverUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={business.coverUrl} alt="Image de couverture" className="h-full w-full object-cover" />
+                    ) : (
+                      <ImagePlus className="h-5 w-5 text-gray-400" />
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="absolute inset-0 cursor-pointer opacity-0"
+                      onChange={(e) => e.target.files?.[0] && upload(e.target.files[0], 'coverUrl')}
+                    />
+                  </label>
                 </div>
               </div>
+              <p className="text-xs text-gray-400">Formats acceptés : JPG, PNG, WEBP, GIF. 4 Mo maximum.</p>
               <div>
                 <label className="label">Couleur principale</label>
                 <input

@@ -1,5 +1,12 @@
 'use client';
 
+function todayIsoDate() {
+  const now = new Date();
+  const offset = now.getTimezoneOffset();
+  const local = new Date(now.getTime() - offset * 60 * 1000);
+  return local.toISOString().slice(0, 10);
+}
+
 export type FieldDef = {
   id: string;
   label: string;
@@ -108,6 +115,7 @@ export function DynamicFormField({
         <input
           {...commonProps}
           type="date"
+          min={todayIsoDate()}
           className="input"
           value={(value as string) || ''}
           onChange={(e) => onChange(e.target.value)}
