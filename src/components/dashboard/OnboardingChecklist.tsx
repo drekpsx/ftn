@@ -26,7 +26,7 @@ export function OnboardingChecklist() {
     <div className="card mb-6 p-6">
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h2 className="font-semibold text-gray-900">Bienvenue sur FlowDevis 👋</h2>
+          <h2 className="font-semibold text-gray-900">Bienvenue sur Flotik 👋</h2>
           <p className="text-sm text-gray-500">{progress}% terminé</p>
         </div>
         <button onClick={() => setDismissed(true)} className="text-xs text-gray-400 hover:text-gray-600">

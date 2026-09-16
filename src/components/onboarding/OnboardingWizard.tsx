@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Check, Copy, ExternalLink, Plus, Trash2 } from 'lucide-react';
 import { ACTIVITIES, getActivity, type DefaultField, type DefaultService } from '@/lib/business-types';
+import { Logo } from '@/components/Logo';
 import type { Business } from '@prisma/client';
 
 type ServiceDraft = DefaultService & { id: string };
@@ -75,12 +76,16 @@ export function OnboardingWizard({ existingBusiness }: { existingBusiness: Busin
     }
   }
 
+  const GENERIC_SAVE_ERROR =
+    "Une information n'a pas pu être enregistrée. Vérifiez votre connexion et réessayez — n'avancez pas tant que ce message est affiché.";
+
   async function saveServices() {
     setLoading(true);
     setError(null);
     try {
       for (const s of services) {
-        await fetch('/api/services', {
+        if (!s.name.trim()) continue;
+        const res = await fetch('/api/services', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -91,8 +96,16 @@ export function OnboardingWizard({ existingBusiness }: { existingBusiness: Busin
             priceMax: s.priceMax ?? null,
           }),
         });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          setError(data.error || GENERIC_SAVE_ERROR);
+          return false;
+        }
       }
       return true;
+    } catch {
+      setError(GENERIC_SAVE_ERROR);
+      return false;
     } finally {
       setLoading(false);
     }
@@ -102,12 +115,20 @@ export function OnboardingWizard({ existingBusiness }: { existingBusiness: Busin
     setLoading(true);
     setError(null);
     try {
-      await fetch('/api/form-fields', {
+      const res = await fetch('/api/form-fields', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fields }),
+        body: JSON.stringify({ fields: fields.filter((f) => f.label.trim()) }),
       });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || GENERIC_SAVE_ERROR);
+        return false;
+      }
       return true;
+    } catch {
+      setError(GENERIC_SAVE_ERROR);
+      return false;
     } finally {
       setLoading(false);
     }
@@ -117,7 +138,7 @@ export function OnboardingWizard({ existingBusiness }: { existingBusiness: Busin
     setLoading(true);
     setError(null);
     try {
-      await fetch('/api/business', {
+      const res = await fetch('/api/business', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -131,7 +152,15 @@ export function OnboardingWizard({ existingBusiness }: { existingBusiness: Busin
           onboardingStep: 5,
         }),
       });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || GENERIC_SAVE_ERROR);
+        return false;
+      }
       return true;
+    } catch {
+      setError(GENERIC_SAVE_ERROR);
+      return false;
     } finally {
       setLoading(false);
     }
@@ -139,13 +168,20 @@ export function OnboardingWizard({ existingBusiness }: { existingBusiness: Busin
 
   async function finish() {
     setLoading(true);
+    setError(null);
     try {
-      await fetch('/api/business', {
+      const res = await fetch('/api/business', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ onboardingCompleted: true, onboardingStep: 6 }),
       });
+      if (!res.ok) {
+        setError(GENERIC_SAVE_ERROR);
+        return;
+      }
       router.push('/dashboard');
+    } catch {
+      setError(GENERIC_SAVE_ERROR);
     } finally {
       setLoading(false);
     }
@@ -166,18 +202,18 @@ export function OnboardingWizard({ existingBusiness }: { existingBusiness: Busin
       return;
     }
     if (step === 2) {
-      await saveServices();
-      setStep(3);
+      const ok = await saveServices();
+      if (ok) setStep(3);
       return;
     }
     if (step === 3) {
-      await saveFields();
-      setStep(4);
+      const ok = await saveFields();
+      if (ok) setStep(4);
       return;
     }
     if (step === 4) {
-      await saveBranding();
-      setStep(5);
+      const ok = await saveBranding();
+      if (ok) setStep(5);
       return;
     }
   }
@@ -190,6 +226,9 @@ export function OnboardingWizard({ existingBusiness }: { existingBusiness: Busin
   return (
     <div className="min-h-screen bg-gray-50 py-10">
       <div className="mx-auto max-w-2xl px-4">
+        <div className="mb-8 flex justify-center">
+          <Logo />
+        </div>
         <div className="mb-8">
           <div className="mb-2 flex justify-between text-xs font-medium text-gray-500">
             {STEP_LABELS.map((label, i) => (

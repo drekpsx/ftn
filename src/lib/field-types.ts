@@ -1,0 +1,15 @@
+export const FIELD_TYPES = [
+  'TEXT',
+  'TEXTAREA',
+  'EMAIL',
+  'PHONE',
+  'NUMBER',
+  'DATE',
+  'TIME',
+  'SELECT',
+  'MULTISELECT',
+  'BOOLEAN',
+  'AMOUNT',
+  'ADDRESS',
+  'FILE',
+] as const;

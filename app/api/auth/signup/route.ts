@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
     await sendEmail({
       to: email,
-      subject: 'Bienvenue sur FlowDevis',
+      subject: 'Bienvenue sur Flotik',
       html: welcomeEmail(user.firstName),
     });
     await sendEmail({

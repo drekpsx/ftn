@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
+import { HelpBanner } from '@/components/dashboard/HelpBanner';
 
 type Item = { label: string; description: string; quantity: number; unitPrice: number };
 type Customer = { id: string; name: string; email: string };
@@ -92,6 +93,11 @@ function NewQuoteForm() {
       </Link>
 
       <h1 className="mb-6 text-2xl font-semibold text-gray-900">Nouveau devis</h1>
+
+      <HelpBanner title="Le devis reste un brouillon">
+        Rien n'est envoyé au client tant que vous n'avez pas cliqué sur « Envoyer au client » sur la page suivante.
+        Vous pourrez modifier les lignes, la réduction et la TVA jusqu'à l'envoi.
+      </HelpBanner>
 
       {error && <div className="mb-4 rounded-xl bg-red-50 px-3.5 py-2.5 text-sm text-red-700">{error}</div>}
 

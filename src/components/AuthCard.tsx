@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Sparkles } from 'lucide-react';
+import { Logo } from '@/components/Logo';
 
 export function AuthCard({
   title,
@@ -15,9 +15,8 @@ export function AuthCard({
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12">
       <div className="w-full max-w-md">
-        <Link href="/" className="mb-8 flex items-center justify-center gap-2 text-brand-700">
-          <Sparkles className="h-6 w-6" />
-          <span className="text-xl font-bold">FlowDevis</span>
+        <Link href="/" className="mb-8 flex items-center justify-center">
+          <Logo size="lg" />
         </Link>
         <div className="card p-8">
           <h1 className="text-xl font-semibold text-gray-900">{title}</h1>

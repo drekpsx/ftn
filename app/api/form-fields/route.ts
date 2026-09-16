@@ -1,30 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { requireBusiness } from '@/lib/auth';
 import { handleApiError } from '@/lib/api-utils';
+import { FIELD_TYPES } from '@/lib/field-types';
 
-const FIELD_TYPES = [
-  'TEXT',
-  'TEXTAREA',
-  'EMAIL',
-  'PHONE',
-  'NUMBER',
-  'DATE',
-  'TIME',
-  'SELECT',
-  'MULTISELECT',
-  'BOOLEAN',
-  'AMOUNT',
-  'ADDRESS',
-  'FILE',
-] as const;
+function toJsonInput(options: string[] | null | undefined) {
+  if (options === null) return Prisma.JsonNull;
+  return options;
+}
 
 const fieldSchema = z.object({
   label: z.string().trim().min(1, 'Le libellé est requis.').max(150),
   type: z.enum(FIELD_TYPES),
   required: z.boolean().optional(),
-  options: z.array(z.string()).optional(),
+  options: z.array(z.string()).optional().nullable(),
   placeholder: z.string().max(200).optional().nullable(),
   showIfFieldId: z.string().optional().nullable(),
   showIfValue: z.string().optional().nullable(),
@@ -60,7 +51,7 @@ export async function POST(req: NextRequest) {
               label: f.label,
               type: f.type,
               required: f.required ?? false,
-              options: f.options,
+              options: toJsonInput(f.options),
               placeholder: f.placeholder,
               order: i,
             },
@@ -82,7 +73,7 @@ export async function POST(req: NextRequest) {
         label: body.label,
         type: body.type,
         required: body.required ?? false,
-        options: body.options,
+        options: toJsonInput(body.options),
         placeholder: body.placeholder,
         showIfFieldId: body.showIfFieldId || null,
         showIfValue: body.showIfValue || null,

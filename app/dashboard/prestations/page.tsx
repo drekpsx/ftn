@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Package, Plus, Trash2, Pencil, X } from 'lucide-react';
 import { PageHeader } from '@/components/dashboard/PageHeader';
 import { EmptyState } from '@/components/dashboard/EmptyState';
+import { HelpBanner } from '@/components/dashboard/HelpBanner';
 
 type ServiceOption = { id?: string; name: string; priceDelta: number };
 type Service = {
@@ -125,6 +126,12 @@ export default function ServicesPage() {
           </button>
         }
       />
+
+      <HelpBanner title="Comment choisir un type de prix ?">
+        <strong>Prix fixe</strong> pour un tarif toujours identique, <strong>« à partir de »</strong> si le prix
+        peut augmenter avec des options, <strong>fourchette</strong> pour une plage de prix, ou{' '}
+        <strong>sur devis</strong> si vous préférez toujours chiffrer au cas par cas.
+      </HelpBanner>
 
       {showForm && (
         <div className="card mb-6 p-6">

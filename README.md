@@ -1,8 +1,8 @@
-# FlowDevis
+# Flotik
 
 > Vos demandes. Vos devis. Vos clients. Un seul endroit.
 
-FlowDevis est un SaaS qui aide les micro-entrepreneurs (photographes, tatoueurs,
+Flotik est un SaaS qui aide les micro-entrepreneurs (photographes, tatoueurs,
 coiffeurs, coachs, wedding planners, artisans, freelances...) à transformer les
 demandes reçues via Instagram, TikTok ou leur site en devis puis en clients,
 sans perdre de temps dans les DM.
@@ -86,7 +86,7 @@ npm run db:seed          # données de démonstration (entreprise "Studio Nova")
 
 Compte de démonstration créé par le seed :
 
-- Email : `demo@flowdevis.app`
+- Email : `demo@flotik.app`
 - Mot de passe : `password123`
 - Page publique : `/p/studio-nova`
 

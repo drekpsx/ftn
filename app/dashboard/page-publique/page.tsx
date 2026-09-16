@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Copy, ExternalLink, Upload, Check } from 'lucide-react';
 import QRCode from 'qrcode';
 import { PageHeader } from '@/components/dashboard/PageHeader';
+import { HelpBanner } from '@/components/dashboard/HelpBanner';
 
 type Business = {
   slug: string;
@@ -85,6 +86,12 @@ export default function PublicPageSettings() {
   return (
     <div>
       <PageHeader title="Page publique" subtitle="Personnalisez la page que vos prospects verront." />
+
+      <HelpBanner title="C'est votre vitrine">
+        Cette page est celle que vos prospects découvrent en cliquant sur le lien dans votre bio Instagram, TikTok
+        ou votre site. Remplissez-la comme une carte de visite : description, photo, réseaux sociaux — puis copiez
+        le lien ci-dessous pour le partager partout.
+      </HelpBanner>
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">

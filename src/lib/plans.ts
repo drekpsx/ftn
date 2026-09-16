@@ -42,7 +42,7 @@ export const PLANS: Record<
       'Relances avancées',
       'Branding avancé',
       'Statistiques avancées',
-      'Sans logo FlowDevis',
+      'Sans logo Flotik',
     ],
   },
 };

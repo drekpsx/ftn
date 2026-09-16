@@ -40,7 +40,7 @@ await page.waitForSelector('text=Demande envoyée', { timeout: 10000 });
 
 console.log('3. Connexion entrepreneur...');
 await page.goto(`${BASE_URL}/connexion`);
-await page.fill('input[type="email"]', 'demo@flowdevis.app');
+await page.fill('input[type="email"]', 'demo@flotik.app');
 await page.fill('input[type="password"]', 'password123');
 await page.click('button[type="submit"]');
 await page.waitForURL('**/dashboard');

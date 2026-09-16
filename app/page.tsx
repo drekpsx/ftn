@@ -26,7 +26,7 @@ const PROBLEMS = [
 ];
 
 const STEPS = [
-  { icon: Instagram, title: 'Partagez votre lien', text: 'Ajoutez votre page FlowDevis dans votre bio Instagram, TikTok ou votre site.' },
+  { icon: Instagram, title: 'Partagez votre lien', text: 'Ajoutez votre page Flotik dans votre bio Instagram, TikTok ou votre site.' },
   { icon: Inbox, title: 'Recevez des demandes complètes', text: 'Vos prospects remplissent un formulaire adapté à votre métier.' },
   { icon: FileText, title: 'Créez un devis en un clic', text: 'Transformez la demande en devis professionnel automatiquement pré-rempli.' },
   { icon: Send, title: 'Envoyez et suivez', text: 'Votre client reçoit un lien pour consulter et accepter son devis en ligne.' },
@@ -68,14 +68,14 @@ const PLANS = [
   {
     name: 'Pro',
     price: '19€',
-    features: ['Tout Starter', 'Paiements & acomptes', 'Relances avancées', 'Branding avancé', 'Sans logo FlowDevis'],
+    features: ['Tout Starter', 'Paiements & acomptes', 'Relances avancées', 'Branding avancé', 'Sans logo Flotik'],
   },
 ];
 
 const FAQS = [
   {
-    q: 'Est-ce que je dois savoir coder pour utiliser FlowDevis ?',
-    a: "Non. FlowDevis est conçu pour les entrepreneurs non techniques. Tout se configure en quelques clics depuis votre tableau de bord.",
+    q: 'Est-ce que je dois savoir coder pour utiliser Flotik ?',
+    a: "Non. Flotik est conçu pour les entrepreneurs non techniques. Tout se configure en quelques clics depuis votre tableau de bord.",
   },
   {
     q: 'Puis-je adapter le formulaire à mon métier ?',
@@ -97,23 +97,34 @@ export default function LandingPage() {
       <MarketingHeader />
 
       {/* Hero */}
-      <section className="mx-auto max-w-5xl px-4 pb-16 pt-16 text-center sm:pt-24">
-        <span className="badge mb-6 bg-brand-50 text-brand-700">Fait pour les micro-entrepreneurs</span>
-        <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl md:text-6xl">
-          Transformez vos demandes Instagram en clients.
-        </h1>
-        <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-500">
-          Recevez des demandes complètes, créez vos devis en quelques clics et suivez vos prospects au même endroit.
-        </p>
-        <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <Link href="/inscription" className="btn-primary px-6 py-3 text-base">
-            Commencer gratuitement <ArrowRight className="h-4 w-4" />
-          </Link>
-          <a href="#comment-ca-marche" className="btn-secondary px-6 py-3 text-base">
-            Voir comment ça marche
-          </a>
+      <section className="relative overflow-hidden">
+        <div
+          className="pointer-events-none absolute inset-x-0 -top-40 -z-10 h-[560px] opacity-40 blur-3xl"
+          style={{
+            background:
+              'radial-gradient(60% 60% at 50% 30%, rgba(91,94,236,0.35) 0%, rgba(91,94,236,0) 70%)',
+          }}
+        />
+        <div className="mx-auto max-w-5xl px-4 pb-16 pt-16 text-center sm:pt-24">
+          <span className="badge mb-6 border border-brand-100 bg-brand-50 text-brand-700">
+            Fait pour les micro-entrepreneurs
+          </span>
+          <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl md:text-6xl">
+            Transformez vos demandes Instagram en clients.
+          </h1>
+          <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-500">
+            Recevez des demandes complètes, créez vos devis en quelques clics et suivez vos prospects au même endroit.
+          </p>
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Link href="/inscription" className="btn-primary px-6 py-3 text-base shadow-lg shadow-brand-600/20">
+              Commencer gratuitement <ArrowRight className="h-4 w-4" />
+            </Link>
+            <a href="#comment-ca-marche" className="btn-secondary px-6 py-3 text-base">
+              Voir comment ça marche
+            </a>
+          </div>
+          <p className="mt-4 text-xs text-gray-400">Vos demandes. Vos devis. Vos clients. Un seul endroit.</p>
         </div>
-        <p className="mt-4 text-xs text-gray-400">Vos demandes. Vos devis. Vos clients. Un seul endroit.</p>
       </section>
 
       {/* Problème */}

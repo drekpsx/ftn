@@ -5,7 +5,7 @@ const wrapper = (title: string, body: string) => `
     <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;">
       <tr>
         <td style="background:#5b5eec;padding:24px 32px;">
-          <span style="color:#fff;font-weight:700;font-size:18px;">FlowDevis</span>
+          <span style="color:#fff;font-weight:700;font-size:18px;">Flotik</span>
         </td>
       </tr>
       <tr>
@@ -16,7 +16,7 @@ const wrapper = (title: string, body: string) => `
       </tr>
       <tr>
         <td style="padding:16px 32px;color:#9296a8;font-size:12px;">
-          FlowDevis — Vos demandes. Vos devis. Vos clients. Un seul endroit.
+          Flotik — Vos demandes. Vos devis. Vos clients. Un seul endroit.
         </td>
       </tr>
     </table>
@@ -31,7 +31,7 @@ const button = (href: string, label: string) => `
 export function welcomeEmail(firstName: string) {
   return wrapper(
     `Bienvenue ${firstName} !`,
-    `<p>Votre compte FlowDevis est prêt. Configurez votre entreprise pour obtenir votre lien public et commencer à recevoir des demandes.</p>`
+    `<p>Votre compte Flotik est prêt. Configurez votre entreprise pour obtenir votre lien public et commencer à recevoir des demandes.</p>`
   );
 }
 

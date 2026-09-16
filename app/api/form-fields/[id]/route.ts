@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { requireBusiness } from '@/lib/auth';
 import { handleApiError, notFound } from '@/lib/api-utils';
+import { FIELD_TYPES } from '@/lib/field-types';
 
 const updateSchema = z.object({
   label: z.string().trim().min(1).max(150).optional(),
+  type: z.enum(FIELD_TYPES).optional(),
   required: z.boolean().optional(),
-  options: z.array(z.string()).optional(),
+  options: z.array(z.string()).optional().nullable(),
   placeholder: z.string().max(200).optional().nullable(),
   order: z.number().int().optional(),
   showIfFieldId: z.string().optional().nullable(),
@@ -29,8 +32,14 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const field = await prisma.formField.update({
       where: { id: params.id },
       data: {
-        ...body,
+        label: body.label,
+        type: body.type,
+        required: body.required,
+        options: body.options === null ? Prisma.JsonNull : body.options,
+        placeholder: body.placeholder,
+        order: body.order,
         showIfFieldId: body.showIfFieldId === '' ? null : body.showIfFieldId,
+        showIfValue: body.showIfValue,
       },
     });
 

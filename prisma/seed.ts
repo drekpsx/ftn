@@ -7,12 +7,12 @@ async function main() {
   const passwordHash = await bcrypt.hash('password123', 12);
 
   const owner = await prisma.user.upsert({
-    where: { email: 'demo@flowdevis.app' },
+    where: { email: 'demo@flotik.app' },
     update: {},
     create: {
       firstName: 'Camille',
       lastName: 'Nova',
-      email: 'demo@flowdevis.app',
+      email: 'demo@flotik.app',
       passwordHash,
       emailVerified: new Date(),
     },
@@ -279,7 +279,7 @@ async function main() {
   });
 
   console.log('Seed terminé.');
-  console.log('Connexion démo : demo@flowdevis.app / password123');
+  console.log('Connexion démo : demo@flotik.app / password123');
   console.log(`Page publique : /p/${business.slug}`);
 }
 

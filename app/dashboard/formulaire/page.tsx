@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { ListChecks, Plus, Trash2, GripVertical, ChevronUp, ChevronDown, X } from 'lucide-react';
 import { PageHeader } from '@/components/dashboard/PageHeader';
+import { HelpBanner } from '@/components/dashboard/HelpBanner';
 import { RequestForm, type PublicService } from '@/components/public/RequestForm';
 import type { FieldDef } from '@/components/public/DynamicFormField';
 
@@ -127,6 +128,12 @@ export default function FormBuilderPage() {
           </button>
         }
       />
+
+      <HelpBanner title="À quoi sert cette page ?">
+        C'est le questionnaire que vos prospects remplissent sur votre page publique. Ajoutez seulement les
+        questions utiles à vos yeux — chaque question peut aussi n'apparaître que si une réponse précédente
+        correspond à une valeur précise (« Afficher uniquement si »), pour ne jamais poser une question hors sujet.
+      </HelpBanner>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="card divide-y divide-gray-100">

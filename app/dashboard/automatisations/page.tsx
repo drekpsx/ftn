@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { PageHeader } from '@/components/dashboard/PageHeader';
+import { HelpBanner } from '@/components/dashboard/HelpBanner';
 
 type Automation = { id: string; type: string; delayHours: number; enabled: boolean; templateKey: string };
 
@@ -33,6 +34,11 @@ export default function AutomationsPage() {
   return (
     <div>
       <PageHeader title="Automatisations" subtitle="Automatisez vos relances pour ne plus jamais oublier un prospect." />
+
+      <HelpBanner title="Comment ça marche ?">
+        Quand un devis reste sans réponse, un email de relance part automatiquement au bout du délai choisi.
+        Aucune relance n'est jamais envoyée si le devis a déjà été accepté ou refusé.
+      </HelpBanner>
 
       <div className="card divide-y divide-gray-100">
         {automations === null ? (

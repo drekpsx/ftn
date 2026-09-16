@@ -148,7 +148,7 @@ export default async function PublicBusinessPage({
           />
         </div>
 
-        <p className="mt-8 text-center text-xs text-gray-400">Propulsé par FlowDevis</p>
+        <p className="mt-8 text-center text-xs text-gray-400">Propulsé par Flotik</p>
       </div>
     </div>
   );

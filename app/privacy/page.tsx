@@ -1,7 +1,7 @@
 import { MarketingHeader } from '@/components/marketing/MarketingHeader';
 import { MarketingFooter } from '@/components/marketing/MarketingFooter';
 
-export const metadata = { title: 'Politique de confidentialité — FlowDevis' };
+export const metadata = { title: 'Politique de confidentialité — Flotik' };
 
 export default function PrivacyPage() {
   return (
@@ -14,21 +14,21 @@ export default function PrivacyPage() {
         <div className="prose prose-sm mt-8 max-w-none text-gray-600">
           <h2>1. Données collectées</h2>
           <p>
-            FlowDevis collecte les données nécessaires au fonctionnement du service : informations de compte
+            Flotik collecte les données nécessaires au fonctionnement du service : informations de compte
             (nom, email, mot de passe chiffré), informations d&apos;entreprise, prestations, demandes reçues via votre
             page publique, devis, clients et paiements.
           </p>
 
           <h2>2. Finalités</h2>
           <p>
-            Ces données sont utilisées exclusivement pour fournir le service FlowDevis : gestion de votre compte,
+            Ces données sont utilisées exclusivement pour fournir le service Flotik : gestion de votre compte,
             de vos demandes, devis et clients, envoi d&apos;emails transactionnels, traitement des paiements via Stripe.
           </p>
 
           <h2>3. Isolation des données</h2>
           <p>
             Chaque entreprise n&apos;a accès qu&apos;à ses propres données. Aucune donnée d&apos;une entreprise n&apos;est accessible
-            par une autre entreprise utilisatrice de FlowDevis.
+            par une autre entreprise utilisatrice de Flotik.
           </p>
 
           <h2>4. Sous-traitants</h2>
@@ -52,7 +52,7 @@ export default function PrivacyPage() {
 
           <h2>7. Cookies</h2>
           <p>
-            FlowDevis utilise uniquement des cookies strictement nécessaires au fonctionnement du service
+            Flotik utilise uniquement des cookies strictement nécessaires au fonctionnement du service
             (authentification, session). Aucun cookie publicitaire ou de tracking tiers n&apos;est utilisé.
           </p>
 

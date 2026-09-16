@@ -129,7 +129,7 @@ export function QuotePdf({
           </View>
         )}
 
-        <Text style={styles.footer}>Devis généré par FlowDevis.</Text>
+        <Text style={styles.footer}>Devis généré par Flotik.</Text>
       </Page>
     </Document>
   );

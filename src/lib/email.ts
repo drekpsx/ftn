@@ -1,7 +1,7 @@
 import { Resend } from 'resend';
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
-const FROM = process.env.EMAIL_FROM || 'FlowDevis <no-reply@flowdevis.app>';
+const FROM = process.env.EMAIL_FROM || 'Flotik <no-reply@flotik.app>';
 
 /**
  * Envoie un email transactionnel. Si aucune clé Resend n'est configurée
