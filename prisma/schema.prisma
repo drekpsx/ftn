@@ -1,0 +1,526 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- Auth / Users ----------
+
+enum PlatformRole {
+  USER
+  ADMIN
+}
+
+model User {
+  id            String       @id @default(cuid())
+  firstName     String
+  lastName      String
+  email         String       @unique
+  passwordHash  String
+  emailVerified DateTime?
+  role          PlatformRole @default(USER)
+  suspended     Boolean      @default(false)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  business Business?
+
+  verificationTokens  VerificationToken[]
+  passwordResetTokens PasswordResetToken[]
+}
+
+model VerificationToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  token     String    @unique
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+// ---------- Business ----------
+
+enum PlanType {
+  FREE
+  STARTER
+  PRO
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  TRIALING
+  PAST_DUE
+  CANCELED
+  INCOMPLETE
+}
+
+model Business {
+  id      String @id @default(cuid())
+  ownerId String @unique
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  name        String
+  slug        String  @unique
+  activity    String
+  description String? @db.Text
+
+  logoUrl      String?
+  avatarUrl    String?
+  coverUrl     String?
+  primaryColor String  @default("#5B5EEC")
+
+  phone       String?
+  publicEmail String?
+  instagram   String?
+  tiktok      String?
+  website     String?
+  address     String?
+
+  quotePrefix       String  @default("DEV")
+  nextQuoteNumber   Int     @default(1)
+  defaultTaxRate    Float   @default(0)
+  quoteValidityDays Int     @default(30)
+  defaultTerms      String? @db.Text
+
+  showPricingPublicly Boolean @default(true)
+  allowIndexing       Boolean @default(false)
+
+  onboardingStep      Int     @default(0)
+  onboardingCompleted Boolean @default(false)
+
+  notifyOnRequest Boolean @default(true)
+  notifyOnQuote   Boolean @default(true)
+  notifyOnPayment Boolean @default(true)
+
+  depositType        String @default("NONE") // NONE | PERCENT_10 | PERCENT_20 | PERCENT_30 | PERCENT_50 | FIXED
+  depositFixedAmount Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  services         Service[]
+  formFields       FormField[]
+  requests         Request[]
+  customers        Customer[]
+  quotes           Quote[]
+  payments         Payment[]
+  messageTemplates MessageTemplate[]
+  automations      Automation[]
+  notifications    Notification[]
+  activities       Activity[]
+  analyticsEvents  AnalyticsEvent[]
+  files            File[]
+  subscription     Subscription?
+
+  @@index([slug])
+}
+
+model Subscription {
+  id         String   @id @default(cuid())
+  businessId String   @unique
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  plan                 PlanType           @default(FREE)
+  status               SubscriptionStatus @default(ACTIVE)
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  currentPeriodEnd     DateTime?
+  cancelAtPeriodEnd    Boolean            @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ---------- Services / Prestations ----------
+
+enum PriceType {
+  FIXED
+  STARTING_AT
+  RANGE
+  ON_QUOTE
+}
+
+model Service {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  name            String
+  description     String?   @db.Text
+  priceType       PriceType @default(FIXED)
+  price           Float?
+  priceMin        Float?
+  priceMax        Float?
+  durationMinutes Int?
+  active          Boolean   @default(true)
+  order           Int       @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  options  ServiceOption[]
+  requests Request[]
+
+  @@index([businessId])
+}
+
+model ServiceOption {
+  id        String  @id @default(cuid())
+  serviceId String
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  name       String
+  priceDelta Float  @default(0)
+  order      Int    @default(0)
+
+  createdAt DateTime @default(now())
+
+  @@index([serviceId])
+}
+
+// ---------- Form builder ----------
+
+enum FieldType {
+  TEXT
+  TEXTAREA
+  EMAIL
+  PHONE
+  NUMBER
+  DATE
+  TIME
+  SELECT
+  MULTISELECT
+  BOOLEAN
+  AMOUNT
+  ADDRESS
+  FILE
+}
+
+model FormField {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  label       String
+  type        FieldType @default(TEXT)
+  required    Boolean   @default(false)
+  order       Int       @default(0)
+  options     Json? // string[] for SELECT/MULTISELECT
+  placeholder String?
+
+  // logique conditionnelle simple : n'afficher ce champ que si le champ
+  // `showIfFieldId` a la valeur `showIfValue`
+  showIfFieldId String?
+  showIfField   FormField?  @relation("FieldCondition", fields: [showIfFieldId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  showIfValue   String?
+  dependents    FormField[] @relation("FieldCondition")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([businessId])
+}
+
+// ---------- Requests / Demandes ----------
+
+enum RequestStatus {
+  NEW
+  TO_PROCESS
+  QUOTE_TO_PREPARE
+  QUOTE_SENT
+  WAITING
+  ACCEPTED
+  REFUSED
+  DONE
+}
+
+model Request {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  serviceId String?
+  service   Service? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+
+  status RequestStatus @default(NEW)
+
+  clientName  String
+  clientEmail String
+  clientPhone String?
+
+  desiredDate    DateTime?
+  answers        Json // [{ fieldId, label, value }]
+  estimatedPrice Float?
+  internalNotes  String?   @db.Text
+
+  source    String? // instagram | tiktok | website | qr | direct
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  quotes     Quote[]
+  files      File[]
+  activities Activity[]
+
+  @@index([businessId, status])
+  @@index([businessId, createdAt])
+}
+
+// ---------- Customers / CRM ----------
+
+model Customer {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  name    String
+  email   String
+  phone   String?
+  company String?
+  address String?
+  notes   String? @db.Text
+  tags    Json? // string[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  requests Request[]
+  quotes   Quote[]
+  payments Payment[]
+
+  @@unique([businessId, email])
+  @@index([businessId])
+}
+
+// ---------- Quotes / Devis ----------
+
+enum QuoteStatus {
+  DRAFT
+  SENT
+  VIEWED
+  ACCEPTED
+  REFUSED
+  EXPIRED
+}
+
+model Quote {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  requestId String?
+  request   Request? @relation(fields: [requestId], references: [id], onDelete: SetNull)
+
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  number String
+  status QuoteStatus @default(DRAFT)
+
+  taxRate   Float @default(0)
+  discount  Float @default(0)
+  subtotal  Float @default(0)
+  taxAmount Float @default(0)
+  total     Float @default(0)
+
+  terms      String?   @db.Text
+  validUntil DateTime?
+
+  depositType   String @default("NONE")
+  depositAmount Float?
+
+  publicToken String @unique @default(cuid())
+
+  sentAt        DateTime?
+  viewedAt      DateTime?
+  respondedAt   DateTime?
+  clientComment String?   @db.Text
+  signatureName String?
+
+  remindersSent  Int       @default(0)
+  lastReminderAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items      QuoteItem[]
+  payments   Payment[]
+  activities Activity[]
+
+  @@index([businessId, status])
+  @@index([publicToken])
+}
+
+model QuoteItem {
+  id      String @id @default(cuid())
+  quoteId String
+  quote   Quote  @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  label       String
+  description String?
+  quantity    Float   @default(1)
+  unitPrice   Float   @default(0)
+  total       Float   @default(0)
+  order       Int     @default(0)
+
+  @@index([quoteId])
+}
+
+// ---------- Payments ----------
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}
+
+enum PaymentType {
+  DEPOSIT
+  FULL
+  SUBSCRIPTION
+}
+
+model Payment {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  quoteId String?
+  quote   Quote?  @relation(fields: [quoteId], references: [id], onDelete: SetNull)
+
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  type     PaymentType   @default(DEPOSIT)
+  status   PaymentStatus @default(PENDING)
+  amount   Float
+  currency String        @default("eur")
+
+  stripePaymentIntentId   String? @unique
+  stripeCheckoutSessionId String? @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([businessId])
+}
+
+// ---------- Messages / Automations ----------
+
+model MessageTemplate {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  key     String // new_request | quote | reminder_1 | reminder_2 | welcome
+  subject String
+  body    String @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([businessId, key])
+}
+
+model Automation {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  type        String // quote_reminder
+  delayHours  Int     @default(24)
+  enabled     Boolean @default(true)
+  templateKey String  @default("reminder_1")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([businessId])
+}
+
+// ---------- Notifications / Activity / Files / Analytics ----------
+
+model Notification {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  type    String
+  message String
+  link    String?
+  read    Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([businessId, read])
+}
+
+model Activity {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  requestId String?
+  request   Request? @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  quoteId String?
+  quote   Quote?  @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  type    String
+  message String
+
+  createdAt DateTime @default(now())
+
+  @@index([businessId, createdAt])
+}
+
+model File {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  requestId String?
+  request   Request? @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  filename String
+  url      String
+  mimeType String
+  size     Int
+
+  createdAt DateTime @default(now())
+
+  @@index([businessId])
+}
+
+model AnalyticsEvent {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  type   String // page_view | form_submit
+  source String? // instagram | tiktok | website | qr | direct
+
+  createdAt DateTime @default(now())
+
+  @@index([businessId, type, createdAt])
+}
