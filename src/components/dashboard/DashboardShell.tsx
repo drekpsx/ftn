@@ -20,12 +20,14 @@ import {
   X,
   LogOut,
   ExternalLink,
+  CalendarDays,
 } from 'lucide-react';
 import { NotificationsBell } from './NotificationsBell';
 import { Logo } from '@/components/Logo';
 
 const NAV = [
   { href: '/dashboard', label: 'Accueil', icon: LayoutDashboard },
+  { href: '/dashboard/planning', label: 'Planning', icon: CalendarDays },
   { href: '/dashboard/demandes', label: 'Demandes', icon: Inbox },
   { href: '/dashboard/devis', label: 'Devis', icon: FileText },
   { href: '/dashboard/clients', label: 'Clients', icon: Users },

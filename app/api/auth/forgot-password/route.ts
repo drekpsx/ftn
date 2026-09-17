@@ -5,11 +5,16 @@ import { prisma } from '@/lib/prisma';
 import { handleApiError } from '@/lib/api-utils';
 import { sendEmail } from '@/lib/email';
 import { resetPasswordEmail } from '@/emails/templates';
+import { isRateLimited, getClientIp } from '@/lib/rate-limit';
 
 const schema = z.object({ email: z.string().email() });
 
 export async function POST(req: NextRequest) {
   try {
+    if (isRateLimited(`forgot-password:${getClientIp(req.headers)}`, 5, 10 * 60 * 1000)) {
+      return NextResponse.json({ error: 'Trop de tentatives. Réessayez dans quelques minutes.' }, { status: 429 });
+    }
+
     const { email } = schema.parse(await req.json());
     const user = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
 

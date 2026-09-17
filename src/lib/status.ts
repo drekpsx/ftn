@@ -20,6 +20,17 @@ export const REQUEST_STATUS_COLORS: Record<string, string> = {
   DONE: 'bg-gray-200 text-gray-600',
 };
 
+export const REQUEST_STATUS_DOT: Record<string, string> = {
+  NEW: 'bg-blue-500',
+  TO_PROCESS: 'bg-amber-500',
+  QUOTE_TO_PREPARE: 'bg-purple-500',
+  QUOTE_SENT: 'bg-indigo-500',
+  WAITING: 'bg-gray-400',
+  ACCEPTED: 'bg-emerald-500',
+  REFUSED: 'bg-red-500',
+  DONE: 'bg-gray-400',
+};
+
 export const QUOTE_STATUS_LABELS: Record<string, string> = {
   DRAFT: 'Brouillon',
   SENT: 'Envoyé',

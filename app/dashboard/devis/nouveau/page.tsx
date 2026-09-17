@@ -6,8 +6,13 @@ import Link from 'next/link';
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
 import { HelpBanner } from '@/components/dashboard/HelpBanner';
 
-type Item = { label: string; description: string; quantity: number; unitPrice: number };
+type Item = { label: string; description: string; quantity: string; unitPrice: string };
 type Customer = { id: string; name: string; email: string };
+
+function toNumber(value: string) {
+  const n = parseFloat(value.replace(',', '.'));
+  return Number.isFinite(n) ? n : 0;
+}
 
 function NewQuoteForm() {
   const router = useRouter();
@@ -16,9 +21,9 @@ function NewQuoteForm() {
 
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [customerId, setCustomerId] = useState('');
-  const [items, setItems] = useState<Item[]>([{ label: '', description: '', quantity: 1, unitPrice: 0 }]);
-  const [discount, setDiscount] = useState(0);
-  const [taxRate, setTaxRate] = useState<number | ''>('');
+  const [items, setItems] = useState<Item[]>([{ label: '', description: '', quantity: '1', unitPrice: '0' }]);
+  const [discount, setDiscount] = useState('0');
+  const [taxRate, setTaxRate] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -37,8 +42,8 @@ function NewQuoteForm() {
               {
                 label: d.request.service.name,
                 description: '',
-                quantity: 1,
-                unitPrice: d.request.estimatedPrice ?? 0,
+                quantity: '1',
+                unitPrice: String(d.request.estimatedPrice ?? 0),
               },
             ]);
           }
@@ -46,7 +51,7 @@ function NewQuoteForm() {
     }
   }, [requestId]);
 
-  const subtotal = items.reduce((sum, it) => sum + it.quantity * it.unitPrice, 0);
+  const subtotal = items.reduce((sum, it) => sum + toNumber(it.quantity) * toNumber(it.unitPrice), 0);
 
   function updateItem(i: number, patch: Partial<Item>) {
     setItems(items.map((it, idx) => (idx === i ? { ...it, ...patch } : it)));
@@ -70,9 +75,14 @@ function NewQuoteForm() {
         body: JSON.stringify({
           requestId: requestId || undefined,
           customerId,
-          items,
-          discount,
-          taxRate: taxRate === '' ? undefined : Number(taxRate),
+          items: items.map((it) => ({
+            label: it.label,
+            description: it.description,
+            quantity: toNumber(it.quantity),
+            unitPrice: toNumber(it.unitPrice),
+          })),
+          discount: toNumber(discount),
+          taxRate: taxRate === '' ? undefined : toNumber(taxRate),
         }),
       });
       const data = await res.json();
@@ -124,10 +134,16 @@ function NewQuoteForm() {
             <label className="label mb-0">Prestations</label>
             <button
               className="text-sm font-medium text-brand-700"
-              onClick={() => setItems([...items, { label: '', description: '', quantity: 1, unitPrice: 0 }])}
+              onClick={() => setItems([...items, { label: '', description: '', quantity: '1', unitPrice: '0' }])}
             >
               <Plus className="mr-1 inline h-3.5 w-3.5" /> Ajouter une ligne
             </button>
+          </div>
+          <div className="mb-1 hidden grid-cols-12 gap-2 px-1 text-xs font-medium text-gray-400 sm:grid">
+            <span className="col-span-5">Prestation</span>
+            <span className="col-span-3">Description</span>
+            <span className="col-span-1">Qté</span>
+            <span className="col-span-2">Prix unitaire</span>
           </div>
           <div className="space-y-3">
             {items.map((it, i) => (
@@ -145,17 +161,22 @@ function NewQuoteForm() {
                   onChange={(e) => updateItem(i, { description: e.target.value })}
                 />
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="decimal"
                   className="input col-span-1"
+                  placeholder="Qté"
+                  title="Quantité"
                   value={it.quantity}
-                  onChange={(e) => updateItem(i, { quantity: Number(e.target.value) })}
+                  onChange={(e) => updateItem(i, { quantity: e.target.value })}
                 />
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="decimal"
                   className="input col-span-2"
-                  placeholder="Prix"
+                  placeholder="Prix unitaire"
+                  title="Prix unitaire (€)"
                   value={it.unitPrice}
-                  onChange={(e) => updateItem(i, { unitPrice: Number(e.target.value) })}
+                  onChange={(e) => updateItem(i, { unitPrice: e.target.value })}
                 />
                 <button onClick={() => setItems(items.filter((_, idx) => idx !== i))} className="col-span-1">
                   <Trash2 className="h-4 w-4 text-gray-400" />
@@ -168,16 +189,17 @@ function NewQuoteForm() {
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
           <div>
             <label className="label">Réduction (€)</label>
-            <input type="number" className="input" value={discount} onChange={(e) => setDiscount(Number(e.target.value))} />
+            <input type="text" inputMode="decimal" className="input" value={discount} onChange={(e) => setDiscount(e.target.value)} />
           </div>
           <div>
             <label className="label">TVA (%)</label>
             <input
-              type="number"
+              type="text"
+              inputMode="decimal"
               className="input"
               placeholder="Par défaut"
               value={taxRate}
-              onChange={(e) => setTaxRate(e.target.value === '' ? '' : Number(e.target.value))}
+              onChange={(e) => setTaxRate(e.target.value)}
             />
           </div>
           <div className="flex items-end justify-end">

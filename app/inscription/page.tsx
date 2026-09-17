@@ -35,6 +35,10 @@ export default function SignupPage() {
         redirect: false,
       });
       if (loginRes?.error) {
+        if (loginRes.error !== 'CredentialsSignin') {
+          setError(`${loginRes.error} Vous pouvez vous connecter dès la confirmation faite.`);
+          return;
+        }
         router.push('/connexion');
         return;
       }
@@ -101,7 +105,7 @@ export default function SignupPage() {
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
           />
-          <p className="mt-1 text-xs text-gray-400">8 caractères minimum.</p>
+          <p className="mt-1 text-xs text-gray-400">8 caractères minimum, avec au moins une lettre et un chiffre.</p>
         </div>
         <button type="submit" disabled={loading} className="btn-primary w-full">
           {loading ? 'Création...' : 'Créer mon compte'}

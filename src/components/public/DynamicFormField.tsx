@@ -1,11 +1,6 @@
 'use client';
 
-function todayIsoDate() {
-  const now = new Date();
-  const offset = now.getTimezoneOffset();
-  const local = new Date(now.getTime() - offset * 60 * 1000);
-  return local.toISOString().slice(0, 10);
-}
+import { DatePickerField } from '@/components/calendar/DatePickerField';
 
 export type FieldDef = {
   id: string;
@@ -42,10 +37,12 @@ export function DynamicFormField({
   field,
   value,
   onChange,
+  disabledDates,
 }: {
   field: FieldDef;
   value: unknown;
   onChange: (value: unknown) => void;
+  disabledDates?: Set<string>;
 }) {
   const commonProps = {
     id: field.id,
@@ -112,13 +109,11 @@ export function DynamicFormField({
         </div>
       )}
       {field.type === 'DATE' && (
-        <input
-          {...commonProps}
-          type="date"
-          min={todayIsoDate()}
-          className="input"
-          value={(value as string) || ''}
-          onChange={(e) => onChange(e.target.value)}
+        <DatePickerField
+          id={field.id}
+          value={(value as string) || null}
+          onChange={onChange}
+          disabledDates={disabledDates || new Set()}
         />
       )}
       {field.type === 'TIME' && (

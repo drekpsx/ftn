@@ -20,8 +20,9 @@ export function handleApiError(error: unknown) {
     }
   }
   if (error instanceof ZodError) {
+    const firstMessage = error.issues[0]?.message;
     return NextResponse.json(
-      { error: 'Données invalides.', issues: error.flatten() },
+      { error: firstMessage || 'Données invalides.', issues: error.flatten() },
       { status: 400 }
     );
   }

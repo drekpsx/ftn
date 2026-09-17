@@ -24,7 +24,7 @@ function LoginForm() {
     try {
       const res = await signIn('credentials', { email, password, redirect: false });
       if (res?.error) {
-        setError('Email ou mot de passe incorrect.');
+        setError(res.error === 'CredentialsSignin' ? 'Email ou mot de passe incorrect.' : res.error);
         return;
       }
       router.push('/dashboard');

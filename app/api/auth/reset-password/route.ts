@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
-import { hashPassword } from '@/lib/passwords';
+import { hashPassword, isPasswordStrongEnough, PASSWORD_REQUIREMENTS_MESSAGE } from '@/lib/passwords';
 import { handleApiError } from '@/lib/api-utils';
 
 const schema = z.object({
   token: z.string().min(1),
-  password: z.string().min(8, 'Le mot de passe doit contenir au moins 8 caractères.'),
+  password: z.string().max(200).refine(isPasswordStrongEnough, PASSWORD_REQUIREMENTS_MESSAGE),
 });
 
 export async function POST(req: NextRequest) {
@@ -20,7 +20,10 @@ export async function POST(req: NextRequest) {
 
     const passwordHash = await hashPassword(password);
     await prisma.$transaction([
-      prisma.user.update({ where: { id: record.userId }, data: { passwordHash } }),
+      prisma.user.update({
+        where: { id: record.userId },
+        data: { passwordHash, failedLoginAttempts: 0, lockedUntil: null },
+      }),
       prisma.passwordResetToken.update({ where: { token }, data: { usedAt: new Date() } }),
     ]);
 

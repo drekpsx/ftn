@@ -52,6 +52,7 @@ export default function RequestDetailPage() {
   const [showMessage, setShowMessage] = useState(false);
   const [lightbox, setLightbox] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [signature, setSignature] = useState('');
 
   async function load() {
     setLoadError(null);
@@ -68,6 +69,16 @@ export default function RequestDetailPage() {
 
   useEffect(() => {
     load();
+    fetch('/api/business')
+      .then((r) => r.json())
+      .then((d) => {
+        if (!d.business) return;
+        const lines = [d.business.name as string];
+        if (d.business.phone) lines.push(d.business.phone);
+        if (d.business.publicEmail) lines.push(d.business.publicEmail);
+        setSignature(lines.join('\n'));
+      })
+      .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id]);
 
@@ -287,8 +298,8 @@ export default function RequestDetailPage() {
         onClose={() => setShowMessage(false)}
         to={request.clientEmail}
         title={`Envoyer un message à ${request.clientName}`}
-        defaultSubject="À propos de votre demande"
-        defaultBody={`Bonjour ${request.clientName.split(' ')[0]},\n\nMerci pour votre demande. Je viens de la recevoir et je reviens vers vous rapidement.\n\nÀ bientôt !`}
+        defaultSubject={request.service ? `Votre demande — ${request.service.name}` : 'Votre demande'}
+        defaultBody={`Bonjour ${request.clientName.split(' ')[0]},\n\nMerci pour votre demande${request.service ? ` concernant « ${request.service.name} »` : ''}. Je viens de la recevoir et je reviens vers vous rapidement.\n\nBien cordialement,\n${signature}`}
         onSent={logMessage}
       />
 

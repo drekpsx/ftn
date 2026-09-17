@@ -16,16 +16,18 @@ enum PlatformRole {
 }
 
 model User {
-  id            String       @id @default(cuid())
-  firstName     String
-  lastName      String
-  email         String       @unique
-  passwordHash  String
-  emailVerified DateTime?
-  role          PlatformRole @default(USER)
-  suspended     Boolean      @default(false)
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  id                  String       @id @default(cuid())
+  firstName           String
+  lastName            String
+  email               String       @unique
+  passwordHash        String
+  emailVerified       DateTime?
+  role                PlatformRole @default(USER)
+  suspended           Boolean      @default(false)
+  failedLoginAttempts Int          @default(0)
+  lockedUntil         DateTime?
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
 
   business Business?
 
@@ -129,8 +131,23 @@ model Business {
   analyticsEvents  AnalyticsEvent[]
   files            File[]
   subscription     Subscription?
+  unavailabilities Unavailability[]
 
   @@index([slug])
+}
+
+model Unavailability {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  date   DateTime // jour bloqué (minuit UTC), une entrée = une journée entière indisponible
+  reason String?
+
+  createdAt DateTime @default(now())
+
+  @@unique([businessId, date])
+  @@index([businessId])
 }
 
 model Subscription {

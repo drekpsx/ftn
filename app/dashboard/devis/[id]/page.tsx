@@ -8,7 +8,12 @@ import { QUOTE_STATUS_COLORS, QUOTE_STATUS_LABELS } from '@/lib/status';
 import { ErrorState } from '@/components/dashboard/ErrorState';
 import { SendEmailModal } from '@/components/dashboard/SendEmailModal';
 
-type Item = { id?: string; label: string; description: string | null; quantity: number; unitPrice: number; total: number };
+type Item = { id?: string; label: string; description: string | null; quantity: string; unitPrice: string; total: number };
+
+function toNumber(value: string) {
+  const n = parseFloat(value.replace(',', '.'));
+  return Number.isFinite(n) ? n : 0;
+}
 type Quote = {
   id: string;
   number: string;
@@ -41,14 +46,15 @@ export default function QuoteDetailPage() {
   const router = useRouter();
   const [quote, setQuote] = useState<Quote | null>(null);
   const [items, setItems] = useState<Item[]>([]);
-  const [discount, setDiscount] = useState(0);
-  const [taxRate, setTaxRate] = useState(0);
+  const [discount, setDiscount] = useState('0');
+  const [taxRate, setTaxRate] = useState('0');
   const [terms, setTerms] = useState('');
   const [copied, setCopied] = useState(false);
   const [saving, setSaving] = useState(false);
   const [appUrl, setAppUrl] = useState('');
   const [loadError, setLoadError] = useState<string | null>(null);
   const [showSendModal, setShowSendModal] = useState(false);
+  const [signature, setSignature] = useState('');
 
   async function load() {
     setLoadError(null);
@@ -60,20 +66,36 @@ export default function QuoteDetailPage() {
     }
     const data = await res.json();
     setQuote(data.quote);
-    setItems(data.quote.items);
-    setDiscount(data.quote.discount);
-    setTaxRate(data.quote.taxRate);
+    setItems(
+      data.quote.items.map((it: { id?: string; label: string; description: string | null; quantity: number; unitPrice: number; total: number }) => ({
+        ...it,
+        quantity: String(it.quantity),
+        unitPrice: String(it.unitPrice),
+      }))
+    );
+    setDiscount(String(data.quote.discount));
+    setTaxRate(String(data.quote.taxRate));
     setTerms(data.quote.terms || '');
   }
 
   useEffect(() => {
     setAppUrl(window.location.origin);
     load();
+    fetch('/api/business')
+      .then((r) => r.json())
+      .then((d) => {
+        if (!d.business) return;
+        const lines = [d.business.name as string];
+        if (d.business.phone) lines.push(d.business.phone);
+        if (d.business.publicEmail) lines.push(d.business.publicEmail);
+        setSignature(lines.join('\n'));
+      })
+      .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id]);
 
   const editable = quote?.status === 'DRAFT';
-  const subtotal = items.reduce((sum, it) => sum + it.quantity * it.unitPrice, 0);
+  const subtotal = items.reduce((sum, it) => sum + toNumber(it.quantity) * toNumber(it.unitPrice), 0);
 
   async function save() {
     setSaving(true);
@@ -81,7 +103,18 @@ export default function QuoteDetailPage() {
       const res = await fetch(`/api/quotes/${params.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items, discount, taxRate, terms }),
+        body: JSON.stringify({
+          items: items.map((it) => ({
+            id: it.id,
+            label: it.label,
+            description: it.description,
+            quantity: toNumber(it.quantity),
+            unitPrice: toNumber(it.unitPrice),
+          })),
+          discount: toNumber(discount),
+          taxRate: toNumber(taxRate),
+          terms,
+        }),
       });
       const data = await res.json();
       if (res.ok) setQuote(data.quote);
@@ -175,12 +208,20 @@ export default function QuoteDetailPage() {
           {editable && (
             <button
               className="text-sm font-medium text-brand-700"
-              onClick={() => setItems([...items, { label: '', description: '', quantity: 1, unitPrice: 0, total: 0 }])}
+              onClick={() => setItems([...items, { label: '', description: '', quantity: '1', unitPrice: '0', total: 0 }])}
             >
               + Ajouter une ligne
             </button>
           )}
         </div>
+        {editable && (
+          <div className="mb-1 hidden grid-cols-12 gap-2 px-1 text-xs font-medium text-gray-400 sm:grid">
+            <span className="col-span-5">Prestation</span>
+            <span className="col-span-3">Description</span>
+            <span className="col-span-1">Qté</span>
+            <span className="col-span-2">Prix unitaire</span>
+          </div>
+        )}
         <div className="space-y-3">
           {items.map((it, i) => (
             <div key={i} className="grid grid-cols-12 gap-2">
@@ -199,17 +240,23 @@ export default function QuoteDetailPage() {
               />
               <input
                 disabled={!editable}
-                type="number"
+                type="text"
+                inputMode="decimal"
                 className="input col-span-1"
+                placeholder="Qté"
+                title="Quantité"
                 value={it.quantity}
-                onChange={(e) => setItems(items.map((x, idx) => (idx === i ? { ...x, quantity: Number(e.target.value) } : x)))}
+                onChange={(e) => setItems(items.map((x, idx) => (idx === i ? { ...x, quantity: e.target.value } : x)))}
               />
               <input
                 disabled={!editable}
-                type="number"
+                type="text"
+                inputMode="decimal"
                 className="input col-span-2"
+                placeholder="Prix unitaire"
+                title="Prix unitaire (€)"
                 value={it.unitPrice}
-                onChange={(e) => setItems(items.map((x, idx) => (idx === i ? { ...x, unitPrice: Number(e.target.value) } : x)))}
+                onChange={(e) => setItems(items.map((x, idx) => (idx === i ? { ...x, unitPrice: e.target.value } : x)))}
               />
               {editable && (
                 <button onClick={() => setItems(items.filter((_, idx) => idx !== i))} className="col-span-1">
@@ -230,20 +277,22 @@ export default function QuoteDetailPage() {
               <label className="label mb-0">Réduction (€)</label>
               <input
                 disabled={!editable}
-                type="number"
+                type="text"
+                inputMode="decimal"
                 className="input w-32"
                 value={discount}
-                onChange={(e) => setDiscount(Number(e.target.value))}
+                onChange={(e) => setDiscount(e.target.value)}
               />
             </div>
             <div className="flex items-center justify-between">
               <label className="label mb-0">TVA (%)</label>
               <input
                 disabled={!editable}
-                type="number"
+                type="text"
+                inputMode="decimal"
                 className="input w-32"
                 value={taxRate}
-                onChange={(e) => setTaxRate(Number(e.target.value))}
+                onChange={(e) => setTaxRate(e.target.value)}
               />
             </div>
             <div className="flex items-center justify-between text-sm text-gray-500">
@@ -278,7 +327,7 @@ export default function QuoteDetailPage() {
         to={quote.customer.email}
         title={`Envoyer le devis ${quote.number}`}
         defaultSubject={`Votre devis ${quote.number}`}
-        defaultBody={`Bonjour ${quote.customer.name.split(' ')[0]},\n\nVoici votre devis ${quote.number}. Vous pouvez le consulter et l'accepter directement en ligne :\n${publicLink}\n\nN'hésitez pas si vous avez la moindre question.\n\nÀ bientôt !`}
+        defaultBody={`Bonjour ${quote.customer.name.split(' ')[0]},\n\nVoici votre devis ${quote.number}, d'un montant total de ${quote.total.toFixed(2)} €. Vous pouvez le consulter et l'accepter directement en ligne à cette adresse :\n${publicLink}\n\nN'hésitez pas à me contacter si vous avez la moindre question.\n\nBien cordialement,\n${signature}`}
         onSent={markSent}
       />
     </div>

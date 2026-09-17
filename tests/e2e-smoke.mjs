@@ -33,8 +33,13 @@ console.log('2. Soumission du formulaire prospect...');
 await page.click('text=Shooting couple');
 await page.locator('label:has-text("Nom complet") + input').fill('Client E2E');
 await page.locator('label:has-text("Email") + input').first().fill(`e2e-${Date.now()}@example.com`);
-const dateInput = page.locator('input[type="date"]');
-if (await dateInput.count()) await dateInput.fill('2026-12-25');
+const dateButton = page.locator('button:has-text("Choisir une date")');
+if (await dateButton.count()) {
+  await dateButton.first().click();
+  await page.waitForSelector('text=Les jours indisponibles');
+  // Choisit un jour valide (non désactivé) dans le mois affiché.
+  await page.locator('button.hover\\:bg-brand-50:not([disabled])').first().click();
+}
 await page.click('button[type="submit"]');
 await page.waitForSelector('text=Demande envoyée', { timeout: 10000 });
 
@@ -58,7 +63,7 @@ await page.waitForFunction(() => {
   return sel && sel.value !== '';
 });
 await page.locator('input[placeholder="Nom de la prestation"]').first().fill('Shooting couple');
-await page.locator('input[placeholder="Prix"]').first().fill('220');
+await page.locator('input[placeholder="Prix unitaire"]').first().fill('220');
 await page.click('button:has-text("Créer le devis")');
 await page.waitForURL(/\/dashboard\/devis\/(?!nouveau)/);
 

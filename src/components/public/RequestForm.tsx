@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Check, Loader2 } from 'lucide-react';
 import { DynamicFormField, isFieldVisible, type FieldDef } from './DynamicFormField';
 import { computeEstimate } from '@/lib/pricing';
@@ -40,6 +40,17 @@ export function RequestForm({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [disabledDates, setDisabledDates] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (mode === 'preview') return;
+    fetch(`/api/public/${slug}/unavailability`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (d?.dates) setDisabledDates(new Set<string>(d.dates));
+      })
+      .catch(() => {});
+  }, [slug, mode]);
 
   const service = services.find((s) => s.id === serviceId) ?? null;
   const estimate = useMemo(() => computeEstimate(service, selectedOptions), [service, selectedOptions]);
@@ -184,6 +195,7 @@ export function RequestForm({
           field={field}
           value={values[field.id]}
           onChange={(v) => setValues((prev) => ({ ...prev, [field.id]: v }))}
+          disabledDates={disabledDates}
         />
       ))}
 

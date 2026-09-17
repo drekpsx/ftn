@@ -108,6 +108,30 @@ export async function POST(req: NextRequest, { params }: { params: { slug: strin
       finalAnswers.push({ fieldId: field.id, label: field.label, value: answer.value });
     }
 
+    if (desiredDate) {
+      // desiredDate vient d'une chaîne "yyyy-MM-dd", donc interprétée en UTC minuit :
+      // on compare tout en UTC pour rester cohérent avec le stockage des jours bloqués.
+      const desiredDayStart = new Date(
+        Date.UTC(desiredDate.getUTCFullYear(), desiredDate.getUTCMonth(), desiredDate.getUTCDate())
+      );
+      const now = new Date();
+      const todayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+
+      if (desiredDayStart < todayStart) {
+        return NextResponse.json({ error: "La date choisie est déjà passée." }, { status: 400 });
+      }
+
+      const blocked = await prisma.unavailability.findUnique({
+        where: { businessId_date: { businessId: business.id, date: desiredDayStart } },
+      });
+      if (blocked) {
+        return NextResponse.json(
+          { error: "Cette date n'est plus disponible. Merci d'en choisir une autre." },
+          { status: 400 }
+        );
+      }
+    }
+
     let estimatedPrice: number | null = null;
     if (service) {
       const optionsTotal = service.options
