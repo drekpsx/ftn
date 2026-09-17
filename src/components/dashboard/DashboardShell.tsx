@@ -22,6 +22,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { NotificationsBell } from './NotificationsBell';
+import { SystemStatusBanner } from './SystemStatusBanner';
 import { Logo } from '@/components/Logo';
 
 const NAV = [
@@ -135,6 +136,7 @@ export function DashboardShell({
           <p className="text-sm text-gray-500">{businessName}</p>
           <NotificationsBell />
         </div>
+        <SystemStatusBanner />
         <main className="p-4 lg:p-8">{children}</main>
       </div>
     </div>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { LineChart, Line, ResponsiveContainer, XAxis, Tooltip } from 'recharts';
 import { PageHeader } from '@/components/dashboard/PageHeader';
+import { ErrorState } from '@/components/dashboard/ErrorState';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -29,12 +30,32 @@ const SOURCE_LABELS: Record<string, string> = {
 
 export default function StatisticsPage() {
   const [stats, setStats] = useState<Stats | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  function loadStats() {
+    setLoadError(null);
+    fetch('/api/statistiques')
+      .then(async (r) => {
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(data.error || 'Une erreur est survenue.');
+        return data;
+      })
+      .then(setStats)
+      .catch((e) => setLoadError(e.message || 'Impossible de charger les statistiques.'));
+  }
 
   useEffect(() => {
-    fetch('/api/statistiques')
-      .then((r) => r.json())
-      .then(setStats);
+    loadStats();
   }, []);
+
+  if (loadError) {
+    return (
+      <div>
+        <PageHeader title="Statistiques" subtitle="Suivez la performance de votre page publique et de vos devis." />
+        <ErrorState message={loadError} onRetry={loadStats} />
+      </div>
+    );
+  }
 
   if (!stats) return <p className="text-sm text-gray-400">Chargement...</p>;
 

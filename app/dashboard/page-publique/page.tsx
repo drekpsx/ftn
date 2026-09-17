@@ -5,6 +5,7 @@ import { Copy, ExternalLink, Upload, Check, ImagePlus, Loader2 } from 'lucide-re
 import QRCode from 'qrcode';
 import { PageHeader } from '@/components/dashboard/PageHeader';
 import { HelpBanner } from '@/components/dashboard/HelpBanner';
+import { ErrorState } from '@/components/dashboard/ErrorState';
 
 type Business = {
   slug: string;
@@ -38,12 +39,23 @@ export default function PublicPageSettings() {
   const [appUrl, setAppUrl] = useState('');
   const [uploadingKey, setUploadingKey] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  function loadBusiness() {
+    setLoadError(null);
+    fetch('/api/business')
+      .then(async (r) => {
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(data.error || 'Une erreur est survenue.');
+        return data;
+      })
+      .then((d) => setBusiness(d.business))
+      .catch((e) => setLoadError(e.message || 'Impossible de charger votre page. Vérifiez votre connexion et réessayez.'));
+  }
 
   useEffect(() => {
     setAppUrl(window.location.origin);
-    fetch('/api/business')
-      .then((r) => r.json())
-      .then((d) => setBusiness(d.business));
+    loadBusiness();
   }, []);
 
   useEffect(() => {
@@ -97,6 +109,15 @@ export default function PublicPageSettings() {
     navigator.clipboard.writeText(text);
     setCopied(key);
     setTimeout(() => setCopied(null), 1500);
+  }
+
+  if (loadError) {
+    return (
+      <div>
+        <PageHeader title="Page publique" subtitle="Personnalisez la page que vos prospects verront." />
+        <ErrorState message={loadError} onRetry={loadBusiness} />
+      </div>
+    );
   }
 
   if (!business) return <p className="text-sm text-gray-400">Chargement...</p>;

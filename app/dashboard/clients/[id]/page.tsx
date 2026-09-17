@@ -7,6 +7,7 @@ import { ArrowLeft, Mail, Phone, MapPin, Building2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { REQUEST_STATUS_COLORS, REQUEST_STATUS_LABELS, QUOTE_STATUS_COLORS, QUOTE_STATUS_LABELS } from '@/lib/status';
+import { ErrorState } from '@/components/dashboard/ErrorState';
 
 type CustomerDetail = {
   id: string;
@@ -27,10 +28,16 @@ export default function ClientDetailPage() {
   const params = useParams<{ id: string }>();
   const [customer, setCustomer] = useState<CustomerDetail | null>(null);
   const [notes, setNotes] = useState('');
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   async function load() {
+    setLoadError(null);
     const res = await fetch(`/api/customers/${params.id}`);
-    if (!res.ok) return;
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setLoadError(data.error || 'Impossible de charger cette fiche client.');
+      return;
+    }
     const data = await res.json();
     setCustomer(data.customer);
     setNotes(data.customer.notes || '');
@@ -47,6 +54,17 @@ export default function ClientDetailPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ notes }),
     });
+  }
+
+  if (loadError) {
+    return (
+      <div>
+        <Link href="/dashboard/clients" className="mb-4 inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700">
+          <ArrowLeft className="h-4 w-4" /> Retour aux clients
+        </Link>
+        <ErrorState message={loadError} onRetry={load} />
+      </div>
+    );
   }
 
   if (!customer) return <p className="text-sm text-gray-400">Chargement...</p>;

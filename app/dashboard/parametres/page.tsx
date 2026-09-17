@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { signOut } from 'next-auth/react';
 import { PageHeader } from '@/components/dashboard/PageHeader';
 import { FormError, FormSuccess } from '@/components/FormError';
+import { ErrorState } from '@/components/dashboard/ErrorState';
 
 type Business = {
   name: string;
@@ -28,10 +29,22 @@ export default function SettingsPage() {
   const [pwError, setPwError] = useState<string | null>(null);
   const [pwSuccess, setPwSuccess] = useState(false);
 
-  useEffect(() => {
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  function loadBusiness() {
+    setLoadError(null);
     fetch('/api/business')
-      .then((r) => r.json())
-      .then((d) => setBusiness(d.business));
+      .then(async (r) => {
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(data.error || 'Une erreur est survenue.');
+        return data;
+      })
+      .then((d) => setBusiness(d.business))
+      .catch((e) => setLoadError(e.message || 'Impossible de charger vos paramètres.'));
+  }
+
+  useEffect(() => {
+    loadBusiness();
   }, []);
 
   async function save(patch: Partial<Business>) {
@@ -71,6 +84,15 @@ export default function SettingsPage() {
     if (!confirm('Cette action supprimera définitivement votre compte et toutes vos données. Continuer ?')) return;
     await fetch('/api/account', { method: 'DELETE' });
     signOut({ callbackUrl: '/' });
+  }
+
+  if (loadError) {
+    return (
+      <div>
+        <PageHeader title="Paramètres" subtitle="Gérez votre entreprise, vos devis et votre compte." />
+        <ErrorState message={loadError} onRetry={loadBusiness} />
+      </div>
+    );
   }
 
   if (!business) return <p className="text-sm text-gray-400">Chargement...</p>;

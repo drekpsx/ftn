@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Copy, Download, Send, Copy as Duplicate, Trash2, Check } from 'lucide-react';
 import { QUOTE_STATUS_COLORS, QUOTE_STATUS_LABELS } from '@/lib/status';
+import { ErrorState } from '@/components/dashboard/ErrorState';
 
 type Item = { id?: string; label: string; description: string | null; quantity: number; unitPrice: number; total: number };
 type Quote = {
@@ -46,10 +47,18 @@ export default function QuoteDetailPage() {
   const [saving, setSaving] = useState(false);
   const [sending, setSending] = useState(false);
   const [appUrl, setAppUrl] = useState('');
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [sendError, setSendError] = useState<string | null>(null);
+  const [emailConfigured, setEmailConfigured] = useState(true);
 
   async function load() {
+    setLoadError(null);
     const res = await fetch(`/api/quotes/${params.id}`);
-    if (!res.ok) return;
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setLoadError(data.error || 'Impossible de charger ce devis.');
+      return;
+    }
     const data = await res.json();
     setQuote(data.quote);
     setItems(data.quote.items);
@@ -61,6 +70,10 @@ export default function QuoteDetailPage() {
   useEffect(() => {
     setAppUrl(window.location.origin);
     load();
+    fetch('/api/system/status')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => d && setEmailConfigured(d.emailConfigured))
+      .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id]);
 
@@ -85,9 +98,17 @@ export default function QuoteDetailPage() {
   async function send() {
     if (!confirm('Envoyer ce devis par email au client ?')) return;
     setSending(true);
+    setSendError(null);
     try {
-      await fetch(`/api/quotes/${params.id}/send`, { method: 'POST' });
+      const res = await fetch(`/api/quotes/${params.id}/send`, { method: 'POST' });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setSendError(data.error || "L'envoi a échoué. Réessayez.");
+        return;
+      }
       await load();
+    } catch {
+      setSendError('Impossible de contacter le serveur. Vérifiez votre connexion et réessayez.');
     } finally {
       setSending(false);
     }
@@ -105,6 +126,17 @@ export default function QuoteDetailPage() {
     router.push('/dashboard/devis');
   }
 
+  if (loadError) {
+    return (
+      <div>
+        <Link href="/dashboard/devis" className="mb-4 inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700">
+          <ArrowLeft className="h-4 w-4" /> Retour aux devis
+        </Link>
+        <ErrorState message={loadError} onRetry={load} />
+      </div>
+    );
+  }
+
   if (!quote) return <p className="text-sm text-gray-400">Chargement...</p>;
 
   const publicLink = `${appUrl}/devis/${quote.publicToken}`;
@@ -114,6 +146,8 @@ export default function QuoteDetailPage() {
       <Link href="/dashboard/devis" className="mb-4 inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700">
         <ArrowLeft className="h-4 w-4" /> Retour aux devis
       </Link>
+
+      {sendError && <div className="mb-4 rounded-xl bg-red-50 px-3.5 py-2.5 text-sm text-red-700">{sendError}</div>}
 
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
@@ -151,6 +185,13 @@ export default function QuoteDetailPage() {
           </button>
         )}
       </div>
+
+      {editable && !emailConfigured && (
+        <p className="mb-6 -mt-4 text-xs text-amber-600">
+          ⚠️ L&apos;envoi d&apos;emails n&apos;est pas configuré : ce devis passera au statut « Envoyé » mais votre
+          client ne recevra rien tant que ce n&apos;est pas fait.
+        </p>
+      )}
 
       <div className="card p-6">
         <div className="mb-4 flex items-center justify-between">

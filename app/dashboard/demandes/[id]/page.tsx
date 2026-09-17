@@ -3,10 +3,11 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Mail, Phone, FileText, Send, User } from 'lucide-react';
+import { ArrowLeft, Mail, Phone, FileText, Send, User, Download, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { REQUEST_STATUS_COLORS, REQUEST_STATUS_LABELS } from '@/lib/status';
+import { ErrorState } from '@/components/dashboard/ErrorState';
 
 type Answer = { fieldId: string; label: string; value: unknown };
 
@@ -34,19 +35,36 @@ function renderAnswerValue(value: unknown) {
   return String(value);
 }
 
+function isFileValue(value: unknown): value is string {
+  return typeof value === 'string' && (value.startsWith('data:') || value.startsWith('/uploads') || value.startsWith('http'));
+}
+
+function isImageValue(value: string) {
+  return value.startsWith('data:image/') || /\.(png|jpe?g|webp|gif)$/i.test(value);
+}
+
 export default function RequestDetailPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const [request, setRequest] = useState<RequestDetail | null>(null);
   const [notes, setNotes] = useState('');
   const [showMessage, setShowMessage] = useState(false);
+  const [lightbox, setLightbox] = useState<string | null>(null);
   const [messageSubject, setMessageSubject] = useState('');
   const [messageBody, setMessageBody] = useState('');
   const [sending, setSending] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [messageError, setMessageError] = useState<string | null>(null);
+  const [emailConfigured, setEmailConfigured] = useState(true);
 
   async function load() {
+    setLoadError(null);
     const res = await fetch(`/api/requests/${params.id}`);
-    if (!res.ok) return;
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setLoadError(data.error || 'Impossible de charger cette demande.');
+      return;
+    }
     const data = await res.json();
     setRequest(data.request);
     setNotes(data.request.internalNotes || '');
@@ -58,6 +76,10 @@ export default function RequestDetailPage() {
 
   useEffect(() => {
     load();
+    fetch('/api/system/status')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => d && setEmailConfigured(d.emailConfigured))
+      .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id]);
 
@@ -80,17 +102,36 @@ export default function RequestDetailPage() {
 
   async function sendMessage() {
     setSending(true);
+    setMessageError(null);
     try {
-      await fetch(`/api/requests/${params.id}/message`, {
+      const res = await fetch(`/api/requests/${params.id}/message`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ subject: messageSubject, body: messageBody }),
       });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setMessageError(data.error || "L'envoi a échoué. Réessayez.");
+        return;
+      }
       setShowMessage(false);
       load();
+    } catch {
+      setMessageError('Impossible de contacter le serveur. Vérifiez votre connexion et réessayez.');
     } finally {
       setSending(false);
     }
+  }
+
+  if (loadError) {
+    return (
+      <div>
+        <Link href="/dashboard/demandes" className="mb-4 inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700">
+          <ArrowLeft className="h-4 w-4" /> Retour aux demandes
+        </Link>
+        <ErrorState message={loadError} onRetry={load} />
+      </div>
+    );
   }
 
   if (!request) return <p className="text-sm text-gray-400">Chargement...</p>;
@@ -162,13 +203,24 @@ export default function RequestDetailPage() {
                 </div>
               )}
               {request.answers.map((a) => (
-                <div key={a.fieldId} className="flex justify-between gap-4 border-b border-gray-50 pb-2 last:border-0">
+                <div key={a.fieldId} className="flex items-center justify-between gap-4 border-b border-gray-50 pb-2 last:border-0">
                   <dt className="text-gray-500">{a.label}</dt>
                   <dd className="text-right font-medium text-gray-800">
-                    {typeof a.value === 'string' && (a.value.startsWith('data:') || a.value.startsWith('/uploads') || a.value.startsWith('http')) ? (
-                      <a href={a.value} target="_blank" rel="noreferrer" className="text-brand-700 underline">
-                        Voir le fichier
-                      </a>
+                    {isFileValue(a.value) ? (
+                      isImageValue(a.value) ? (
+                        <button onClick={() => setLightbox(a.value as string)} className="block">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={a.value}
+                            alt={a.label}
+                            className="h-14 w-14 rounded-lg border border-gray-200 object-cover transition hover:opacity-80"
+                          />
+                        </button>
+                      ) : (
+                        <a href={a.value} download className="inline-flex items-center gap-1.5 text-brand-700 underline">
+                          <Download className="h-4 w-4" /> Télécharger le fichier
+                        </a>
+                      )
                     ) : (
                       renderAnswerValue(a.value)
                     )}
@@ -242,7 +294,7 @@ export default function RequestDetailPage() {
               <h2 className="mb-3 font-semibold">Fichiers</h2>
               <div className="space-y-1">
                 {request.files.map((f) => (
-                  <a key={f.id} href={f.url} target="_blank" rel="noreferrer" className="block truncate text-sm text-brand-700 underline">
+                  <a key={f.id} href={f.url} download={f.filename} className="block truncate text-sm text-brand-700 underline">
                     {f.filename}
                   </a>
                 ))}
@@ -256,6 +308,15 @@ export default function RequestDetailPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
           <div className="card w-full max-w-lg p-6">
             <h2 className="mb-4 font-semibold">Envoyer un message à {request.clientName}</h2>
+            {!emailConfigured && (
+              <p className="mb-3 rounded-xl bg-amber-50 px-3.5 py-2.5 text-xs text-amber-700">
+                ⚠️ L&apos;envoi d&apos;emails n&apos;est pas configuré : ce message ne sera pas réellement reçu par
+                votre client.
+              </p>
+            )}
+            {messageError && (
+              <div className="mb-3 rounded-xl bg-red-50 px-3.5 py-2.5 text-sm text-red-700">{messageError}</div>
+            )}
             <div className="space-y-3">
               <input className="input" value={messageSubject} onChange={(e) => setMessageSubject(e.target.value)} />
               <textarea className="input" rows={6} value={messageBody} onChange={(e) => setMessageBody(e.target.value)} />
@@ -269,6 +330,23 @@ export default function RequestDetailPage() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {lightbox && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          onClick={() => setLightbox(null)}
+        >
+          <button
+            onClick={() => setLightbox(null)}
+            className="absolute right-5 top-5 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
+            aria-label="Fermer"
+          >
+            <X className="h-5 w-5" />
+          </button>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={lightbox} alt="Aperçu" className="max-h-[85vh] max-w-full rounded-lg object-contain" />
         </div>
       )}
     </div>
