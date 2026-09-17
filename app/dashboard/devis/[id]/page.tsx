@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ArrowLeft, Copy, Download, Send, Copy as Duplicate, Trash2, Check } from 'lucide-react';
 import { QUOTE_STATUS_COLORS, QUOTE_STATUS_LABELS } from '@/lib/status';
 import { ErrorState } from '@/components/dashboard/ErrorState';
+import { SendEmailModal } from '@/components/dashboard/SendEmailModal';
 
 type Item = { id?: string; label: string; description: string | null; quantity: number; unitPrice: number; total: number };
 type Quote = {
@@ -45,11 +46,9 @@ export default function QuoteDetailPage() {
   const [terms, setTerms] = useState('');
   const [copied, setCopied] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [sending, setSending] = useState(false);
   const [appUrl, setAppUrl] = useState('');
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [sendError, setSendError] = useState<string | null>(null);
-  const [emailConfigured, setEmailConfigured] = useState(true);
+  const [showSendModal, setShowSendModal] = useState(false);
 
   async function load() {
     setLoadError(null);
@@ -70,10 +69,6 @@ export default function QuoteDetailPage() {
   useEffect(() => {
     setAppUrl(window.location.origin);
     load();
-    fetch('/api/system/status')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => d && setEmailConfigured(d.emailConfigured))
-      .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id]);
 
@@ -95,23 +90,13 @@ export default function QuoteDetailPage() {
     }
   }
 
-  async function send() {
-    if (!confirm('Envoyer ce devis par email au client ?')) return;
-    setSending(true);
-    setSendError(null);
-    try {
-      const res = await fetch(`/api/quotes/${params.id}/send`, { method: 'POST' });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setSendError(data.error || "L'envoi a échoué. Réessayez.");
-        return;
-      }
-      await load();
-    } catch {
-      setSendError('Impossible de contacter le serveur. Vérifiez votre connexion et réessayez.');
-    } finally {
-      setSending(false);
+  async function markSent() {
+    const res = await fetch(`/api/quotes/${params.id}/send`, { method: 'POST' });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || "L'envoi a échoué. Réessayez.");
     }
+    await load();
   }
 
   async function duplicate() {
@@ -147,8 +132,6 @@ export default function QuoteDetailPage() {
         <ArrowLeft className="h-4 w-4" /> Retour aux devis
       </Link>
 
-      {sendError && <div className="mb-4 rounded-xl bg-red-50 px-3.5 py-2.5 text-sm text-red-700">{sendError}</div>}
-
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold text-gray-900">{quote.number}</h1>
@@ -159,8 +142,8 @@ export default function QuoteDetailPage() {
 
       <div className="mb-6 flex flex-wrap gap-2">
         {editable && (
-          <button onClick={send} disabled={sending} className="btn-primary">
-            <Send className="h-4 w-4" /> {sending ? 'Envoi...' : 'Envoyer au client'}
+          <button onClick={() => setShowSendModal(true)} className="btn-primary">
+            <Send className="h-4 w-4" /> Envoyer au client
           </button>
         )}
         <a href={`/api/quotes/${quote.id}/pdf`} target="_blank" rel="noreferrer" className="btn-secondary">
@@ -185,13 +168,6 @@ export default function QuoteDetailPage() {
           </button>
         )}
       </div>
-
-      {editable && !emailConfigured && (
-        <p className="mb-6 -mt-4 text-xs text-amber-600">
-          ⚠️ L&apos;envoi d&apos;emails n&apos;est pas configuré : ce devis passera au statut « Envoyé » mais votre
-          client ne recevra rien tant que ce n&apos;est pas fait.
-        </p>
-      )}
 
       <div className="card p-6">
         <div className="mb-4 flex items-center justify-between">
@@ -295,6 +271,16 @@ export default function QuoteDetailPage() {
           </div>
         )}
       </div>
+
+      <SendEmailModal
+        open={showSendModal}
+        onClose={() => setShowSendModal(false)}
+        to={quote.customer.email}
+        title={`Envoyer le devis ${quote.number}`}
+        defaultSubject={`Votre devis ${quote.number}`}
+        defaultBody={`Bonjour ${quote.customer.name.split(' ')[0]},\n\nVoici votre devis ${quote.number}. Vous pouvez le consulter et l'accepter directement en ligne :\n${publicLink}\n\nN'hésitez pas si vous avez la moindre question.\n\nÀ bientôt !`}
+        onSent={markSent}
+      />
     </div>
   );
 }

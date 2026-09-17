@@ -9,16 +9,28 @@ const config: Config = {
     extend: {
       colors: {
         brand: {
-          50: '#f2f4ff',
-          100: '#e6e9fe',
-          200: '#c4caff',
-          300: '#a2abff',
-          400: '#7d84f7',
-          500: '#5b5eec',
-          600: '#4640d6',
-          700: '#3730ab',
-          800: '#2b2686',
-          900: '#211d63',
+          50: '#edfdf6',
+          100: '#d3fae8',
+          200: '#a6f2d2',
+          300: '#6fe4b8',
+          400: '#3ecda1',
+          500: '#16a87f',
+          600: '#0d8a68',
+          700: '#0a6f56',
+          800: '#0a5945',
+          900: '#094a3b',
+        },
+        accent: {
+          50: '#fffbeb',
+          100: '#fef3c7',
+          200: '#fde68a',
+          300: '#fcd34d',
+          400: '#fbbf24',
+          500: '#f59e0b',
+          600: '#d97706',
+          700: '#b45309',
+          800: '#92400e',
+          900: '#78350f',
         },
       },
       borderRadius: {
@@ -26,11 +38,26 @@ const config: Config = {
         '2xl': '1.25rem',
       },
       boxShadow: {
-        soft: '0 2px 8px rgba(15, 15, 30, 0.06), 0 1px 2px rgba(15,15,30,0.04)',
-        card: '0 4px 24px rgba(15, 15, 30, 0.06)',
+        soft: '0 2px 8px rgba(9, 74, 59, 0.07), 0 1px 2px rgba(9,74,59,0.05)',
+        card: '0 4px 24px rgba(9, 74, 59, 0.07)',
+        glow: '0 8px 24px -6px rgba(13, 138, 104, 0.45)',
       },
       fontFamily: {
         sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
+      },
+      keyframes: {
+        float: {
+          '0%, 100%': { transform: 'translate(0, 0) scale(1)' },
+          '50%': { transform: 'translate(2%, -4%) scale(1.05)' },
+        },
+        floatSlow: {
+          '0%, 100%': { transform: 'translate(0, 0) scale(1)' },
+          '50%': { transform: 'translate(-3%, 3%) scale(1.08)' },
+        },
+      },
+      animation: {
+        float: 'float 9s ease-in-out infinite',
+        'float-slow': 'floatSlow 13s ease-in-out infinite',
       },
     },
   },

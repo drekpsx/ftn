@@ -70,7 +70,7 @@ export default async function PublicBusinessPage({
         style={
           business.coverUrl
             ? { backgroundImage: `url(${business.coverUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
-            : { background: `linear-gradient(135deg, ${business.primaryColor}, #211d63)` }
+            : { background: `linear-gradient(135deg, ${business.primaryColor}, #094a3b)` }
         }
       />
 

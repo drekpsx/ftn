@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  --brand: #5b5eec;
+  --brand: #16a87f;
 }
 
 html {
@@ -19,15 +19,15 @@ body {
 }
 
 .btn {
-  @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
+  @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none disabled:hover:translate-y-0 disabled:hover:shadow-none;
 }
 
 .btn-primary {
-  @apply btn bg-brand-600 text-white hover:bg-brand-700 focus-visible:ring-brand-500;
+  @apply btn bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-glow hover:-translate-y-0.5 hover:shadow-lg hover:shadow-brand-600/40 focus-visible:ring-brand-500 active:translate-y-0;
 }
 
 .btn-secondary {
-  @apply btn bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 focus-visible:ring-brand-500;
+  @apply btn bg-white text-gray-700 border border-gray-200 hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-soft focus-visible:ring-brand-500 active:translate-y-0;
 }
 
 .btn-ghost {
@@ -39,7 +39,7 @@ body {
 }
 
 .input {
-  @apply w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100;
+  @apply w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100;
 }
 
 .label {
@@ -48,4 +48,20 @@ body {
 
 .badge {
   @apply inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium;
+}
+
+.card-hover {
+  @apply transition-all duration-200 hover:-translate-y-1 hover:shadow-card;
+}
+
+.glass {
+  @apply border border-white/40 bg-white/60 backdrop-blur-md;
+}
+
+.text-gradient {
+  @apply bg-gradient-to-r from-brand-600 to-emerald-500 bg-clip-text text-transparent;
+}
+
+.blob {
+  @apply pointer-events-none absolute rounded-full opacity-50 blur-3xl;
 }

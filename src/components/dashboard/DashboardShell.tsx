@@ -22,7 +22,6 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { NotificationsBell } from './NotificationsBell';
-import { SystemStatusBanner } from './SystemStatusBanner';
 import { Logo } from '@/components/Logo';
 
 const NAV = [
@@ -61,10 +60,15 @@ export function DashboardShell({
             key={item.href}
             href={item.href}
             onClick={() => setMobileOpen(false)}
-            className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
-              active ? 'bg-brand-50 text-brand-700' : 'text-gray-600 hover:bg-gray-100'
+            className={`relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${
+              active
+                ? 'bg-gradient-to-r from-brand-50 to-transparent text-brand-700'
+                : 'text-gray-600 hover:translate-x-0.5 hover:bg-gray-100'
             }`}
           >
+            {active && (
+              <span className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-gradient-to-b from-brand-500 to-brand-700" />
+            )}
             <Icon className="h-[18px] w-[18px]" />
             {item.label}
           </Link>
@@ -136,7 +140,6 @@ export function DashboardShell({
           <p className="text-sm text-gray-500">{businessName}</p>
           <NotificationsBell />
         </div>
-        <SystemStatusBanner />
         <main className="p-4 lg:p-8">{children}</main>
       </div>
     </div>

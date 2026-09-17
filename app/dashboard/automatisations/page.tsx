@@ -37,7 +37,10 @@ export default function AutomationsPage() {
 
       <HelpBanner title="Comment ça marche ?">
         Quand un devis reste sans réponse, un email de relance part automatiquement au bout du délai choisi.
-        Aucune relance n'est jamais envoyée si le devis a déjà été accepté ou refusé.
+        Aucune relance n'est jamais envoyée si le devis a déjà été accepté ou refusé. Contrairement à l'envoi de vos
+        devis et messages (qui passe par votre propre messagerie, sans rien à configurer), une relance automatique
+        se déclenche sans que vous soyez présent : elle nécessite donc un service d'envoi optionnel et gratuit
+        (Resend) branché sur le site. Sans lui, les relances restent simplement inactives.
       </HelpBanner>
 
       <div className="card divide-y divide-gray-100">

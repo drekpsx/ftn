@@ -62,8 +62,9 @@ await page.locator('input[placeholder="Prix"]').first().fill('220');
 await page.click('button:has-text("Créer le devis")');
 await page.waitForURL(/\/dashboard\/devis\/(?!nouveau)/);
 
-page.once('dialog', (d) => d.accept());
 await page.click('button:has-text("Envoyer au client")');
+await page.waitForSelector('text=En cliquant sur', { timeout: 10000 });
+await page.click('.fixed button:has-text("Envoyer")');
 await page.waitForSelector('text=Envoyé', { timeout: 10000 });
 
 console.log('6. Acceptation publique du devis...');

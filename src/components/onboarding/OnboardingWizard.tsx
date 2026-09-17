@@ -35,7 +35,7 @@ export function OnboardingWizard({ existingBusiness }: { existingBusiness: Busin
   );
 
   const [description, setDescription] = useState('');
-  const [primaryColor, setPrimaryColor] = useState('#5B5EEC');
+  const [primaryColor, setPrimaryColor] = useState('#16A87F');
   const [instagram, setInstagram] = useState('');
   const [tiktok, setTiktok] = useState('');
   const [website, setWebsite] = useState('');

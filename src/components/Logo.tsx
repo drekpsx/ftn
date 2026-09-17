@@ -8,7 +8,7 @@ export function Logo({ size = 'md', withText = true }: { size?: 'sm' | 'md' | 'l
   return (
     <span className="inline-flex items-center gap-2">
       <span
-        className={`inline-flex ${boxSize} flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-soft`}
+        className={`inline-flex ${boxSize} flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-800 text-white shadow-glow`}
       >
         <Zap className={`${iconSize} fill-current`} strokeWidth={0} />
       </span>

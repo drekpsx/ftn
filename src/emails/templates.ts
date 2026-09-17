@@ -4,7 +4,7 @@ const wrapper = (title: string, body: string) => `
   <body style="margin:0;background:#f4f5f9;padding:32px 0;font-family:Helvetica,Arial,sans-serif;color:#1a1a2e;">
     <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;">
       <tr>
-        <td style="background:#5b5eec;padding:24px 32px;">
+        <td style="background-color:#0d8a68;background:linear-gradient(135deg,#16a87f,#0a5945);padding:24px 32px;">
           <span style="color:#fff;font-weight:700;font-size:18px;">Flotik</span>
         </td>
       </tr>
@@ -25,7 +25,7 @@ const wrapper = (title: string, body: string) => `
 `;
 
 const button = (href: string, label: string) => `
-  <a href="${href}" style="display:inline-block;margin-top:16px;background:#5b5eec;color:#fff;text-decoration:none;padding:12px 20px;border-radius:10px;font-weight:600;font-size:14px;">${label}</a>
+  <a href="${href}" style="display:inline-block;margin-top:16px;background-color:#0d8a68;color:#fff;text-decoration:none;padding:12px 20px;border-radius:10px;font-weight:600;font-size:14px;">${label}</a>
 `;
 
 export function welcomeEmail(firstName: string) {

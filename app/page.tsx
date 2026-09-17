@@ -97,26 +97,24 @@ export default function LandingPage() {
       <MarketingHeader />
 
       {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div
-          className="pointer-events-none absolute inset-x-0 -top-40 -z-10 h-[560px] opacity-40 blur-3xl"
-          style={{
-            background:
-              'radial-gradient(60% 60% at 50% 30%, rgba(91,94,236,0.35) 0%, rgba(91,94,236,0) 70%)',
-          }}
-        />
+      <section className="relative z-0 overflow-hidden">
+        <div className="absolute inset-0 -z-10 overflow-hidden">
+          <div className="blob animate-float -left-24 -top-32 h-[420px] w-[420px] bg-brand-300" />
+          <div className="blob animate-float-slow -right-32 top-0 h-[380px] w-[380px] bg-accent-300" />
+          <div className="blob animate-float left-1/3 top-40 h-[320px] w-[320px] bg-brand-200 opacity-30" />
+        </div>
         <div className="mx-auto max-w-5xl px-4 pb-16 pt-16 text-center sm:pt-24">
-          <span className="badge mb-6 border border-brand-100 bg-brand-50 text-brand-700">
-            Fait pour les micro-entrepreneurs
+          <span className="badge glass mb-6 text-brand-700 shadow-soft">
+            ✨ Fait pour les micro-entrepreneurs
           </span>
           <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl md:text-6xl">
-            Transformez vos demandes Instagram en clients.
+            Transformez vos demandes Instagram en <span className="text-gradient">clients</span>.
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-500">
             Recevez des demandes complètes, créez vos devis en quelques clics et suivez vos prospects au même endroit.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link href="/inscription" className="btn-primary px-6 py-3 text-base shadow-lg shadow-brand-600/20">
+            <Link href="/inscription" className="btn-primary px-6 py-3 text-base">
               Commencer gratuitement <ArrowRight className="h-4 w-4" />
             </Link>
             <a href="#comment-ca-marche" className="btn-secondary px-6 py-3 text-base">
@@ -135,7 +133,7 @@ export default function LandingPage() {
           </h2>
           <div className="mt-10 grid gap-6 sm:grid-cols-3">
             {PROBLEMS.map((p) => (
-              <div key={p.title} className="card p-6">
+              <div key={p.title} className="card card-hover p-6">
                 <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-red-50 text-red-500">
                   <p.icon className="h-5 w-5" />
                 </div>
@@ -174,7 +172,7 @@ export default function LandingPage() {
         <div className="mx-auto max-w-4xl px-4">
           <h2 className="text-center text-2xl font-semibold text-gray-900 sm:text-3xl">Un exemple concret</h2>
           <div className="mt-10 grid gap-6 sm:grid-cols-3">
-            <div className="card p-6">
+            <div className="card card-hover p-6">
               <p className="mb-2 text-xs font-semibold uppercase text-brand-600">Photographe</p>
               <ul className="space-y-1 text-sm text-gray-600">
                 <li>Type de shooting</li>
@@ -185,7 +183,7 @@ export default function LandingPage() {
                 <li>Photos de référence</li>
               </ul>
             </div>
-            <div className="card p-6">
+            <div className="card card-hover p-6">
               <p className="mb-2 text-xs font-semibold uppercase text-brand-600">Tatoueur</p>
               <ul className="space-y-1 text-sm text-gray-600">
                 <li>Zone du corps</li>
@@ -196,7 +194,7 @@ export default function LandingPage() {
                 <li>Budget</li>
               </ul>
             </div>
-            <div className="card p-6">
+            <div className="card card-hover p-6">
               <p className="mb-2 text-xs font-semibold uppercase text-brand-600">Prestataire événementiel</p>
               <ul className="space-y-1 text-sm text-gray-600">
                 <li>Type d&apos;événement</li>
@@ -252,7 +250,15 @@ export default function LandingPage() {
           <h2 className="text-center text-2xl font-semibold text-gray-900 sm:text-3xl">Tarifs simples et transparents</h2>
           <div className="mt-10 grid gap-6 sm:grid-cols-3">
             {PLANS.map((p) => (
-              <div key={p.name} className={`card p-6 ${p.highlight ? 'ring-2 ring-brand-500' : ''}`}>
+              <div
+                key={p.name}
+                className={`card card-hover relative p-6 ${p.highlight ? 'ring-2 ring-brand-500 shadow-glow' : ''}`}
+              >
+                {p.highlight && (
+                  <span className="badge absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-brand-500 to-brand-700 text-white">
+                    Le plus populaire
+                  </span>
+                )}
                 <h3 className="font-semibold text-gray-900">{p.name}</h3>
                 <p className="mt-1 text-3xl font-bold text-gray-900">
                   {p.price}

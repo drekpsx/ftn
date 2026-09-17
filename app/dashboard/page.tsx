@@ -21,8 +21,8 @@ type Summary = {
 
 function StatCard({ icon: Icon, label, value, sub }: { icon: React.ComponentType<{ className?: string }>; label: string; value: string | number; sub?: string }) {
   return (
-    <div className="card p-5">
-      <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
+    <div className="card card-hover p-5">
+      <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-brand-50 to-brand-100 text-brand-600">
         <Icon className="h-5 w-5" />
       </div>
       <p className="text-2xl font-semibold text-gray-900">{value}</p>

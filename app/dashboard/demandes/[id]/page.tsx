@@ -8,6 +8,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { REQUEST_STATUS_COLORS, REQUEST_STATUS_LABELS } from '@/lib/status';
 import { ErrorState } from '@/components/dashboard/ErrorState';
+import { SendEmailModal } from '@/components/dashboard/SendEmailModal';
 
 type Answer = { fieldId: string; label: string; value: unknown };
 
@@ -50,12 +51,7 @@ export default function RequestDetailPage() {
   const [notes, setNotes] = useState('');
   const [showMessage, setShowMessage] = useState(false);
   const [lightbox, setLightbox] = useState<string | null>(null);
-  const [messageSubject, setMessageSubject] = useState('');
-  const [messageBody, setMessageBody] = useState('');
-  const [sending, setSending] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [messageError, setMessageError] = useState<string | null>(null);
-  const [emailConfigured, setEmailConfigured] = useState(true);
 
   async function load() {
     setLoadError(null);
@@ -68,18 +64,10 @@ export default function RequestDetailPage() {
     const data = await res.json();
     setRequest(data.request);
     setNotes(data.request.internalNotes || '');
-    setMessageSubject(`À propos de votre demande`);
-    setMessageBody(
-      `Bonjour ${data.request.clientName.split(' ')[0]},\n\nMerci pour votre demande. Je viens de la recevoir et je reviens vers vous rapidement.\n\nÀ bientôt !`
-    );
   }
 
   useEffect(() => {
     load();
-    fetch('/api/system/status')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => d && setEmailConfigured(d.emailConfigured))
-      .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id]);
 
@@ -100,27 +88,17 @@ export default function RequestDetailPage() {
     });
   }
 
-  async function sendMessage() {
-    setSending(true);
-    setMessageError(null);
-    try {
-      const res = await fetch(`/api/requests/${params.id}/message`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subject: messageSubject, body: messageBody }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setMessageError(data.error || "L'envoi a échoué. Réessayez.");
-        return;
-      }
-      setShowMessage(false);
-      load();
-    } catch {
-      setMessageError('Impossible de contacter le serveur. Vérifiez votre connexion et réessayez.');
-    } finally {
-      setSending(false);
+  async function logMessage(subject: string, body: string) {
+    const res = await fetch(`/api/requests/${params.id}/message`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ subject, body }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || "L'envoi a échoué. Réessayez.");
     }
+    load();
   }
 
   if (loadError) {
@@ -304,34 +282,15 @@ export default function RequestDetailPage() {
         </div>
       </div>
 
-      {showMessage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-          <div className="card w-full max-w-lg p-6">
-            <h2 className="mb-4 font-semibold">Envoyer un message à {request.clientName}</h2>
-            {!emailConfigured && (
-              <p className="mb-3 rounded-xl bg-amber-50 px-3.5 py-2.5 text-xs text-amber-700">
-                ⚠️ L&apos;envoi d&apos;emails n&apos;est pas configuré : ce message ne sera pas réellement reçu par
-                votre client.
-              </p>
-            )}
-            {messageError && (
-              <div className="mb-3 rounded-xl bg-red-50 px-3.5 py-2.5 text-sm text-red-700">{messageError}</div>
-            )}
-            <div className="space-y-3">
-              <input className="input" value={messageSubject} onChange={(e) => setMessageSubject(e.target.value)} />
-              <textarea className="input" rows={6} value={messageBody} onChange={(e) => setMessageBody(e.target.value)} />
-            </div>
-            <div className="mt-4 flex justify-end gap-2">
-              <button onClick={() => setShowMessage(false)} className="btn-secondary">
-                Annuler
-              </button>
-              <button onClick={sendMessage} disabled={sending} className="btn-primary">
-                {sending ? 'Envoi...' : 'Envoyer'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <SendEmailModal
+        open={showMessage}
+        onClose={() => setShowMessage(false)}
+        to={request.clientEmail}
+        title={`Envoyer un message à ${request.clientName}`}
+        defaultSubject="À propos de votre demande"
+        defaultBody={`Bonjour ${request.clientName.split(' ')[0]},\n\nMerci pour votre demande. Je viens de la recevoir et je reviens vers vous rapidement.\n\nÀ bientôt !`}
+        onSent={logMessage}
+      />
 
       {lightbox && (
         <div

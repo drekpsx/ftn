@@ -85,7 +85,7 @@ model Business {
   logoUrl      String?
   avatarUrl    String?
   coverUrl     String?
-  primaryColor String  @default("#5B5EEC")
+  primaryColor String  @default("#16A87F")
 
   phone       String?
   publicEmail String?

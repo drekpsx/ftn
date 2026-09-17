@@ -27,7 +27,7 @@ async function main() {
       slug: 'studio-nova',
       activity: 'Photographe',
       description: 'Photographe portrait, couple et mariage basée à Lyon. Studio Nova capture vos plus beaux moments.',
-      primaryColor: '#5B5EEC',
+      primaryColor: '#16A87F',
       phone: '+33 6 12 34 56 78',
       publicEmail: 'contact@studio-nova.example',
       instagram: '@studionova',

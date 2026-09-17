@@ -92,7 +92,7 @@ export default function StatisticsPage() {
                 tick={{ fontSize: 11, fill: '#9ca3af' }}
               />
               <Tooltip labelFormatter={(d) => format(new Date(d as string), 'd MMMM yyyy', { locale: fr })} />
-              <Line type="monotone" dataKey="count" stroke="#5b5eec" strokeWidth={2} dot={false} />
+              <Line type="monotone" dataKey="count" stroke="#0d8a68" strokeWidth={2} dot={false} />
             </LineChart>
           </ResponsiveContainer>
         </div>
